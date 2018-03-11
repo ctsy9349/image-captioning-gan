@@ -75,8 +75,9 @@ class CaptioningSolver(object):
 
         # build graphs for training model and sampling captions
         loss = self.model.build_model()
-        tf.get_variable_scope().reuse_variables()
-        _, _, generated_captions = self.model.build_sampler(max_len=20)
+        with tf.variable_scope(tf.get_variable_scope()) as scope:
+	    tf.get_variable_scope().reuse_variables()
+            _, _, generated_captions = self.model.build_sampler(max_len=20)
 
         # train op
         with tf.name_scope('optimizer'):
@@ -86,13 +87,13 @@ class CaptioningSolver(object):
             train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars)
            
         # summary op   
-        tf.scalar_summary('batch_loss', loss)
+        tf.summary.scalar('batch_loss', loss)
         for var in tf.trainable_variables():
-            tf.histogram_summary(var.op.name, var)
+            tf.summary.histogram(var.op.name, var)
         for grad, var in grads_and_vars:
-            tf.histogram_summary(var.op.name+'/gradient', grad)
+            tf.summary.histogram(var.op.name+'/gradient', grad)
         
-        summary_op = tf.merge_all_summaries() 
+        summary_op = tf.summary.merge_all() 
 
         print "The number of epoch: %d" %self.n_epochs
         print "Data size: %d" %n_examples
@@ -104,7 +105,7 @@ class CaptioningSolver(object):
         config.gpu_options.allow_growth = True
         with tf.Session(config=config) as sess:
             tf.initialize_all_variables().run()
-            summary_writer = tf.train.SummaryWriter(self.log_path, graph=tf.get_default_graph())
+            summary_writer = tf.summary.FileWriter(self.log_path, graph=tf.get_default_graph())
             saver = tf.train.Saver(max_to_keep=40)
 
             if self.pretrained_model is not None:
