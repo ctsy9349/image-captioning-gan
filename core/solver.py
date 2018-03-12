@@ -130,7 +130,7 @@ class CaptioningSolver(object):
 			d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
 			non_d_vars = [item for item in all_vars if item not in d_vars]
 			print len(non_d_vars)
-			saver = tf.train.Saver()#var_list = non_d_vars[11:])
+			saver = tf.train.Saver(var_list = non_d_vars)
 			saver.restore(sess, self.test_model)
 
 			start_t = time.time()
