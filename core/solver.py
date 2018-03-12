@@ -120,8 +120,15 @@ class CaptioningSolver(object):
 		prev_loss = -1
 		curr_loss = 0
 		loss = self.discriminator.build_model()
+
+		# build a graph to sample captions
+		alphas, betas, sampled_captions = self.model.build_sampler(max_len=17)    # (N, max_len, L), (N, max_len)
+
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
+
+			saver = tf.train.Saver()
+			saver.restore(sess, self.test_model)
 
 			start_t = time.time()
 			for e in range(self.n_epochs):
@@ -140,6 +147,9 @@ class CaptioningSolver(object):
 					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 					features_batch = np.repeat(features[image_idxs_batch], 2, 0)
 					labels = np.append(np.ones((len(captions_batch), 1)), np.zeros((len(wrong_captions_batch), 1)), 0)
+					feed_dict = { self.model.features: features_batch }
+					alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
+					print sam_cap.shape
 					#print all_captions_batch.shape, features_batch.shape, labels.shape
 					new_loss = self.discriminator.train(sess, i, features_batch, all_captions_batch, labels)
 					curr_loss += new_loss
