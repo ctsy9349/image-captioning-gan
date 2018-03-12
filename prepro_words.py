@@ -135,8 +135,6 @@ def main():
     # about 80000 images and 400000 captions for train dataset
 
     # about 4000 images and 20000 captions for val / test dataset
-    val_cutoff = int(0.1 * len(val_dataset))
-    test_cutoff = int(0.2 * len(val_dataset))
     print 'Finished processing caption data'
 
     # save_pickle(train_dataset, 'data/train/train.annotations.pkl')
@@ -149,7 +147,7 @@ def main():
         if split == 'train':
             word_to_idx = _build_vocab(annotations=annotations, threshold=word_count_threshold)
             save_pickle(word_to_idx, './data/%s/word_to_idx.pkl' % split)
-        
+
 
 
 if __name__ == "__main__":
