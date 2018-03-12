@@ -154,8 +154,9 @@ class CaptioningSolver(object):
 					labels = np.append(np.ones((len(captions_batch), 1)), np.zeros((2 * len(wrong_captions_batch), 1)), 0)
 					feed_dict = { self.model.features: features_batch_single }
 					alps, bts, gen_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
-					all_captions_batch = np.append(captions_batch, wrong_captions_batch, gen_cap, 0)
+					all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
 					#print all_captions_batch.shape, features_batch.shape, labels.shape
+					print captions_batch[0], "\n", gen_cap[0]
 					new_loss = self.discriminator.train(sess, i, features_batch, all_captions_batch, labels)
 					curr_loss += new_loss
 					# if (i+1) % self.print_every == 0:
