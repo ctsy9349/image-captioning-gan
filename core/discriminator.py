@@ -46,7 +46,7 @@ class Discriminator(object):
 		self.loss = None
 
 	def build_model(self):
-		if self.loss:
+		if self.loss is not None:
 			return self.loss
 
 		features = self.features
