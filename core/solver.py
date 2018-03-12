@@ -119,17 +119,18 @@ class CaptioningSolver(object):
 
 		prev_loss = -1
 		curr_loss = 0
-		loss = self.discriminator.build_model()
+		#loss = self.discriminator.build_model()
 
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=17)    # (N, max_len, L), (N, max_len)
 
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
-			all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) 
+			all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
 			d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
 			non_d_vars = [item for item in all_vars if item not in d_vars]
-			saver = tf.train.Saver(var_list = non_d_vars)
+			print len(non_d_vars)
+			saver = tf.train.Saver()#var_list = non_d_vars[11:])
 			saver.restore(sess, self.test_model)
 
 			start_t = time.time()
@@ -270,7 +271,6 @@ class CaptioningSolver(object):
 			saver = tf.train.Saver()
 			saver.restore(sess, self.test_model)
 			features_batch, image_files = sample_coco_minibatch(data, self.batch_size)
-			print image_files
 			feed_dict = { self.model.features: features_batch }
 			alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
 			decoded = decode_captions(sam_cap, self.model.idx_to_word)
@@ -278,11 +278,9 @@ class CaptioningSolver(object):
 			if attention_visualization:
 				for n in range(10):
 					print "Sampled Caption: %s" %decoded[n]
-					print image_files[n]
-					
+
 					# Plot original image
 					img = ndimage.imread(image_files[n])
-					print img
 					plt.subplot(4, 5, 1)
 					plt.imshow(img)
 					plt.axis('off')
@@ -292,21 +290,21 @@ class CaptioningSolver(object):
 					for t in range(len(words)):
 						if t > 18:
 							break
-							plt.subplot(4, 5, t+2)
-							plt.text(0, 1, '%s(%.2f)'%(words[t], bts[n,t]) , color='black', backgroundcolor='white', fontsize=8)
-							plt.imshow(img)
-							alp_curr = alps[n,t,:].reshape(14,14)
-							alp_img = skimage.transform.pyramid_expand(alp_curr, upscale=16, sigma=20)
-							plt.imshow(alp_img, alpha=0.85)
-							plt.axis('off')
-							plt.show()
+						plt.subplot(4, 5, t+2)
+						plt.text(0, 1, '%s(%.2f)'%(words[t], bts[n,t]) , color='black', backgroundcolor='white', fontsize=8)
+						plt.imshow(img)
+						alp_curr = alps[n,t,:].reshape(14,14)
+						alp_img = skimage.transform.pyramid_expand(alp_curr, upscale=16, sigma=20)
+						plt.imshow(alp_img, alpha=0.85)
+						plt.axis('off')
+					plt.show()
 
-							if save_sampled_captions:
-								all_sam_cap = np.ndarray((features.shape[0], 20))
-								num_iter = int(np.ceil(float(features.shape[0]) / self.batch_size))
-								for i in range(num_iter):
-									features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
-									feed_dict = { self.model.features: features_batch }
-									all_sam_cap[i*self.batch_size:(i+1)*self.batch_size] = sess.run(sampled_captions, feed_dict)
-									all_decoded = decode_captions(all_sam_cap, self.model.idx_to_word)
-									save_pickle(all_decoded, "./data/%s/%s.candidate.captions.pkl" %(split,split))
+				if save_sampled_captions:
+					all_sam_cap = np.ndarray((features.shape[0], 20))
+					num_iter = int(np.ceil(float(features.shape[0]) / self.batch_size))
+					for i in range(num_iter):
+						features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
+						feed_dict = { self.model.features: features_batch }
+						all_sam_cap[i*self.batch_size:(i+1)*self.batch_size] = sess.run(sampled_captions, feed_dict)
+					all_decoded = decode_captions(all_sam_cap, self.model.idx_to_word)
+					save_pickle(all_decoded, "./data/%s/%s.candidate.captions.pkl" %(split,split))
