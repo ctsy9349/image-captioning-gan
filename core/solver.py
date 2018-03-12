@@ -64,12 +64,12 @@ class CaptioningSolver(object):
 			os.makedirs(self.log_path)
 
 	def fix_wrong_captions(self, wrong_capt_batch, all_captions, rand_id, rand_id_c):
-		n_examples = captions.shape[0]
+		n_examples = all_captions.shape[0]
 		counter = 0
 		for i, j in zip(rand_id, rand_id_c):
 			if i == j:
 				ind = j + 1
-				wrong_capt_batch[counter] = captions[ind]
+				wrong_capt_batch[counter] = all_captions[ind]
 				counter += 1
 
 	def train(self):
@@ -123,6 +123,7 @@ class CaptioningSolver(object):
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
 
+			start_t = time.time()
 			for e in range(self.n_epochs):
 				rand_idxs = np.random.permutation(n_examples)
 				rand_caption_ind = np.random.permutation(n_examples)
@@ -138,8 +139,9 @@ class CaptioningSolver(object):
 					all_captions_batch = np.append(captions_batch, wrong_captions_batch, 0)
 					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 					features_batch = np.repeat(features[image_idxs_batch], 2, 0)
-					labels = np.append(np.ones((self.batch_size, 1)), np.zeros((self.batch_size, 1)), 0)
-					new_loss = self.discriminator.train(sess, i, features_batch, captions_batch, labels)
+					labels = np.append(np.ones((len(captions_batch), 1)), np.zeros((len(wrong_captions_batch), 1)), 0)
+					#print all_captions_batch.shape, features_batch.shape, labels.shape
+					new_loss = self.discriminator.train(sess, i, features_batch, all_captions_batch, labels)
 					curr_loss += new_loss
 					# if (i+1) % self.print_every == 0:
 					# 	print "\nTrain loss at epoch %d & iteration %d (mini-batch): %.5f" %(e+1, i+1, l)
@@ -151,18 +153,19 @@ class CaptioningSolver(object):
 					# 	decoded = decode_captions(gen_caps, self.model.idx_to_word)
 					# 	print "Generated caption: %s\n" %decoded[0]
 
-					print "Previous epoch loss: ", prev_loss
-					print "Current epoch loss: ", curr_loss
-					print "Elapsed time: ", time.time() - start_t
-					prev_loss = curr_loss
-					curr_loss = 0
+				print "\n\nEpoch:", e
+				print "Previous epoch loss: ", prev_loss
+				print "Current epoch loss: ", curr_loss
+				print "Elapsed time: ", time.time() - start_t
+				prev_loss = curr_loss
+				curr_loss = 0
 
 
-					"""
+				"""
 					Training Discrim End
-					"""
+				"""
 
-					"""
+				"""
 					with tf.Session(config=config) as sess:
 						tf.initialize_all_variables().run()
 						summary_writer = tf.summary.FileWriter(self.log_path, graph=tf.get_default_graph())

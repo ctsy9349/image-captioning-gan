@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 class Discriminator(object):
 	def __init__(self, word_to_idx, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
@@ -40,7 +41,7 @@ class Discriminator(object):
 
 		# Place holder for features and captions
 		self.features = tf.placeholder(tf.float32, [None, self.L, self.D])
-		self.captions = tf.placeholder(tf.int32, [None, self.T + 1])
+		self.captions = tf.placeholder(tf.float32, [None, self.T + 1, 1])
 		self.target = tf.placeholder(tf.float32, [None, 1])
 		self.loss = None
 
@@ -65,7 +66,7 @@ class Discriminator(object):
 		b = tf.Variable(tf.constant(0.1, shape=[1]))
 		prediction = tf.matmul(dot_prod, W) + b
 		pred_sigmoid = tf.sigmoid(prediction)   # for prediction
-		x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(prediction, target)
+		x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=prediction, labels=target)
 		loss = tf.reduce_mean(x_entropy)
 		self.pred_sigmoid = pred_sigmoid
 		self.loss = loss
@@ -75,14 +76,14 @@ class Discriminator(object):
 	def train(self, sess, i, image_features, image_captions, y):
 		features = self.features
 		captions = self.captions
+		image_captions = np.reshape(image_captions, (image_captions.shape[0], image_captions.shape[1], 1))
 		target = self.target
 		loss = self.loss
 		train_step = self.train_step
-		sess.run(init_op)
 		fd_train = {features: image_features, captions: image_captions, target: y}
 		train_step.run(fd_train)
 		loss_step = loss.eval(fd_train)
-		print('  step: loss = %6d: %8.3f' % (i, loss_step)
+		print('  step: loss = %6d: %8.3f' % (i, loss_step))
 		return loss_step
 
 	def save(self):
