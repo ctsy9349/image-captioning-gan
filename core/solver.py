@@ -119,7 +119,7 @@ class CaptioningSolver(object):
 
 		prev_loss = -1
 		curr_loss = 0
-		#loss = self.discriminator.build_model()
+		loss = self.discriminator.build_model()
 
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=17)    # (N, max_len, L), (N, max_len)
@@ -129,8 +129,7 @@ class CaptioningSolver(object):
 			all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES) 
 			d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
 			non_d_vars = [item for item in all_vars if item not in d_vars]
-			print len(non_d_vars)
-			saver = tf.train.Saver()#var_list = non_d_vars[11:])
+			saver = tf.train.Saver(var_list = non_d_vars)
 			saver.restore(sess, self.test_model)
 
 			start_t = time.time()
@@ -271,6 +270,7 @@ class CaptioningSolver(object):
 			saver = tf.train.Saver()
 			saver.restore(sess, self.test_model)
 			features_batch, image_files = sample_coco_minibatch(data, self.batch_size)
+			print image_files
 			feed_dict = { self.model.features: features_batch }
 			alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
 			decoded = decode_captions(sam_cap, self.model.idx_to_word)
@@ -278,9 +278,11 @@ class CaptioningSolver(object):
 			if attention_visualization:
 				for n in range(10):
 					print "Sampled Caption: %s" %decoded[n]
-
+					print image_files[n]
+					
 					# Plot original image
 					img = ndimage.imread(image_files[n])
+					print img
 					plt.subplot(4, 5, 1)
 					plt.imshow(img)
 					plt.axis('off')
