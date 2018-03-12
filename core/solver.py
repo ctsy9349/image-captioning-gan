@@ -132,7 +132,7 @@ class CaptioningSolver(object):
 			print len(non_d_vars)
 			saver = tf.train.Saver(var_list = non_d_vars)
 			saver.restore(sess, self.test_model)
-
+			saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
 			start_t = time.time()
 			for e in range(self.n_epochs):
 				rand_idxs = np.random.permutation(n_examples)
