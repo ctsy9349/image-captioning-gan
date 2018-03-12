@@ -126,6 +126,7 @@ class CaptioningSolver(object):
 
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
+			print tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
 
 			saver = tf.train.Saver()
 			saver.restore(sess, self.test_model)
