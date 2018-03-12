@@ -73,7 +73,7 @@ class Discriminator(object):
 		self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.loss)
 		return loss
 
-	def train(self, sess, i, image_features, image_captions, y):
+	def train(self, sess, e, i, image_features, image_captions, y):
 		features = self.features
 		captions = self.captions
 		image_captions = np.reshape(image_captions, (image_captions.shape[0], image_captions.shape[1], 1))
@@ -83,7 +83,7 @@ class Discriminator(object):
 		fd_train = {features: image_features, captions: image_captions, target: y}
 		train_step.run(fd_train)
 		loss_step = loss.eval(fd_train)
-		print('  step: loss = %6d: %8.3f' % (i, loss_step))
+		print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, loss_step))
 		return loss_step
 
 	def save(self):

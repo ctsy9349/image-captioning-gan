@@ -156,8 +156,8 @@ class CaptioningSolver(object):
 					alps, bts, gen_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
 					all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
 					#print all_captions_batch.shape, features_batch.shape, labels.shape
-					print captions_batch[0], "\n", gen_cap[0]
-					new_loss = self.discriminator.train(sess, i, features_batch, all_captions_batch, labels)
+					# print captions_batch[0], "\n", gen_cap[0]
+					new_loss = self.discriminator.train(sess, e, i, features_batch, all_captions_batch, labels)
 					curr_loss += new_loss
 					# if (i+1) % self.print_every == 0:
 					# 	print "\nTrain loss at epoch %d & iteration %d (mini-batch): %.5f" %(e+1, i+1, l)
@@ -168,7 +168,9 @@ class CaptioningSolver(object):
 					# 	gen_caps = sess.run(generated_captions, feed_dict)
 					# 	decoded = decode_captions(gen_caps, self.model.idx_to_word)
 					# 	print "Generated caption: %s\n" %decoded[0]
-
+				if (e+1) % self.save_every == 0:
+					saver.save(sess, os.path.join(self.model_path, 'model'), global_step=22 + e)
+					print "model-%s saved." %(e+ 22)
 				print "\n\nEpoch:", e
 				print "Previous epoch loss: ", prev_loss
 				print "Current epoch loss: ", curr_loss
