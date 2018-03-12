@@ -116,7 +116,7 @@ class CaptioningSolver(object):
 		"""
 		Training Discrim : Might need to take the training and sess out of the discrim. pass it in
 		"""
-
+		print "\n\nPre-Training Discriminator ...\n"
 		prev_loss = -1
 		curr_loss = 0
 		loss = self.discriminator.build_model()
