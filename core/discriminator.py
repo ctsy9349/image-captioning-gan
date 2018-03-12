@@ -52,22 +52,22 @@ class Discriminator(object):
 		features = self.features
 		captions = self.captions
 		target = self.target
+		with tf.variable_scope('d_lstm', reuse=tf.AUTO_REUSE):
+			features_flat = tf.reshape(features, [-1, 196 * 512])
+			features_dense = tf.layers.dense(inputs=features_flat, units=self.H, activation=tf.nn.relu)
 
-		features_flat = tf.reshape(features, [-1, 196 * 512])
-		features_dense = tf.layers.dense(inputs=features_flat, units=self.H, activation=tf.nn.relu)
+			cell = tf.nn.rnn_cell.LSTMCell(self.H,state_is_tuple=True)
+			val, state = tf.nn.dynamic_rnn(cell, captions, dtype=tf.float32)
 
-		cell = tf.nn.rnn_cell.LSTMCell(self.H,state_is_tuple=True)
-		val, state = tf.nn.dynamic_rnn(cell, captions, dtype=tf.float32)
-
-		val = tf.transpose(val, [1, 0, 2])
-		last = tf.gather(val, int(val.get_shape()[0]) - 1)
-		dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
-		W = tf.Variable(tf.truncated_normal([1, 1]))
-		b = tf.Variable(tf.constant(0.1, shape=[1]))
-		prediction = tf.matmul(dot_prod, W) + b
-		pred_sigmoid = tf.sigmoid(prediction)   # for prediction
-		x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=prediction, labels=target)
-		loss = tf.reduce_mean(x_entropy)
+			val = tf.transpose(val, [1, 0, 2])
+			last = tf.gather(val, int(val.get_shape()[0]) - 1)
+			dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
+			W = tf.Variable(tf.truncated_normal([1, 1]))
+			b = tf.Variable(tf.constant(0.1, shape=[1]))
+			prediction = tf.matmul(dot_prod, W) + b
+			pred_sigmoid = tf.sigmoid(prediction)   # for prediction
+			x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=prediction, labels=target)
+			loss = tf.reduce_mean(x_entropy)
 		self.pred_sigmoid = pred_sigmoid
 		self.loss = loss
 		self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.loss)
