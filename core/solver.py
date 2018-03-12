@@ -119,7 +119,7 @@ class CaptioningSolver(object):
 
 		prev_loss = -1
 		curr_loss = 0
-		#loss = self.discriminator.build_model()
+		loss = self.discriminator.build_model()
 
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=17)    # (N, max_len, L), (N, max_len)
