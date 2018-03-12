@@ -174,7 +174,8 @@ class CaptioningSolver(object):
 				print "\n\nEpoch:", e
 				print "Previous epoch loss: ", prev_loss
 				print "Current epoch loss: ", curr_loss
-				print "Elapsed time: ", time.time() - start_t
+				print "Time elapsed: ", time.time() - start_t
+				print "\n\n"
 				prev_loss = curr_loss
 				curr_loss = 0
 
