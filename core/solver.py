@@ -126,13 +126,14 @@ class CaptioningSolver(object):
 
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
-			all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-			d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
-			non_d_vars = [item for item in all_vars if item not in d_vars]
-			print len(non_d_vars)
-			saver = tf.train.Saver(var_list = non_d_vars)
+			#all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+			#d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
+			#non_d_vars = [item for item in all_vars if item not in d_vars]
+			#print len(non_d_vars)
+			saver = tf.train.Saver()#var_list = non_d_vars)
 			saver.restore(sess, self.test_model)
-			saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
+			#saver = tf.train.Saver()
+			#saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
 			start_t = time.time()
 			for e in range(self.n_epochs):
 				rand_idxs = np.random.permutation(n_examples)
