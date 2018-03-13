@@ -155,7 +155,7 @@ class CaptioningSolver(object):
 					feed_dict = { self.model.features: features_batch_single }
 					alps, bts, gen_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
 
-					decoded_1 = decode_captions(captions_batch[:10], self.model.idx_to_word)
+					decoded_1 = decode_captions(captions_batch[:10, 1:], self.model.idx_to_word)
 					decoded_2 = decode_captions(gen_cap[:10], self.model.idx_to_word)
 					all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
 					#print all_captions_batch.shape, features_batch.shape, labels.shape
@@ -255,11 +255,12 @@ class CaptioningSolver(object):
 
 					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 					features_batch_single = features[image_idxs_batch]
-					features_batch = np.repeat(features[image_idxs_batch], 3, 0)
-					labels = np.append(np.ones((len(captions_batch), 1)), np.zeros((2 * len(wrong_captions_batch), 1)), 0)
+					features_batch = np.repeat(features[image_idxs_batch], 2, 0)
+					labels = np.append(np.ones((len(captions_batch), 1)), np.zeros((1 * len(wrong_captions_batch), 1)), 0)
 					feed_dict = { self.model.features: features_batch_single }
 					alps, bts, gen_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
-					all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
+					all_captions_batch = """np.append("""np.append(captions_batch, wrong_captions_batch, 0)#, gen_cap, 0)
+
 					#print all_captions_batch.shape, features_batch.shape, labels.shape
 					# print captions_batch[0], "\n", gen_cap[0]
 					new_loss = self.discriminator.train(sess, e, i, features_batch, all_captions_batch, labels)
