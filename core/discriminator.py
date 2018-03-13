@@ -87,9 +87,9 @@ class Discriminator(object):
 		train_step = self.train_step
 		fd_train = {features: image_features, captions: image_captions, target: y}
 		# print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
-		print "LSTM:",(self.last.eval(fd_train)[:, :10])
-		print "CNN:", (self.features_dense.eval(fd_train)[:, :10])
-		print "Feat:", (self.features_flat.eval(fd_train)[:, :10])
+		# print "LSTM:",(self.last.eval(fd_train)[:, :10])
+		# print "CNN:", (self.features_dense.eval(fd_train)[:, :10])
+		# print "Feat:", (self.features_flat.eval(fd_train)[:, :10])
 		train_step.run(fd_train)
 		loss_step = loss.eval(fd_train)
 		print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, loss_step))
