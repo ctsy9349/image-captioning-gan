@@ -184,7 +184,7 @@ class CaptioningSolver(object):
 		all_captions_batch = all_captions_batch[rand_idxs]
 		labels = labels[rand_idxs]
 		return features_batch, all_captions_batch, labels
-	
+
 	def train(self):
 		# train/val dataset
 		n_examples = self.data['captions'].shape[0]
@@ -263,7 +263,7 @@ class CaptioningSolver(object):
 
 					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 					features_batch_single = features[image_idxs_batch]
-					features_batch = np.repeat(features[image_idxs_batch], 2, 0)
+					features_batch = np.append(features_batch_single, features_batch_single, 0)
 					labels = np.append(np.ones((len(captions_batch), 1)), np.zeros((1 * len(wrong_captions_batch), 1)), 0)
 					feed_dict = { self.model.features: features_batch_single }
 					alps, bts, gen_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
