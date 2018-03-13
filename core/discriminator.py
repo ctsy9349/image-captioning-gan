@@ -95,7 +95,7 @@ class Discriminator(object):
 		target = self.target
 		loss = self.loss
 		pred_sigmoid = self.pred_sigmoid
-
+		image_captions = np.reshape(image_captions, (image_captions.shape[0], image_captions.shape[1], 1))
 		print 'Making discriminator predictions ...'
 		fd_train = {features: image_features, captions: image_captions}
 		pred = pred_sigmoid.eval(fd_train)
