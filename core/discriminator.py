@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 class Discriminator(object):
-	def __init__(self, word_to_idx, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
+	def __init__(self, word_to_idx, FCN=1000, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
 	prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True, learning_rate=0.1):
 		"""
 		Args:
@@ -31,6 +31,7 @@ class Discriminator(object):
 		self.M = dim_embed
 		self.H = dim_hidden
 		self.T = n_time_step
+		self.FCN = FCN
 		self.learning_rate = learning_rate
 		self._start = word_to_idx['<START>']
 		self._null = word_to_idx['<NULL>']
@@ -61,17 +62,17 @@ class Discriminator(object):
 
 			val = tf.transpose(val, [1, 0, 2])
 			last = tf.gather(val, int(val.get_shape()[0]) - 1)
-			dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
-			W = tf.Variable(tf.truncated_normal([1, 1]))
-			b = tf.Variable(tf.constant(0.1, shape=[1]))
-			prediction = tf.matmul(dot_prod, W) + b
-			pred_sigmoid = tf.sigmoid(prediction)   # for prediction
-			x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=prediction, labels=target)
+			#dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
+			concatenated = tf.concat([features_dense, last], 1)
+			hidden1 = tf.layers.dense(inputs=concatenated, units=self.FCN, activation=tf.nn.relu, kernel_initializer=self.weight_initializer)
+			output = tf.layers.dense(inputs=hidden1 units=1, activation=tf.nn.relu, kernel_initializer=self.weight_initializer)
+			pred_sigmoid = tf.sigmoid(output)   # for prediction
+			x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=target)
 			loss = tf.reduce_mean(x_entropy)
 		self.pred_sigmoid = pred_sigmoid
 		self.loss = loss
 		self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.loss)
-		self.dot_prod = dot_prod
+		# self.dot_prod = dot_prod
 		self.last = last
 		self.features_dense = features_dense
 		self.features_flat = features_flat
@@ -85,7 +86,7 @@ class Discriminator(object):
 		loss = self.loss
 		train_step = self.train_step
 		fd_train = {features: image_features, captions: image_captions, target: y}
-		print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
+		# print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
 		print "LSTM:",(self.last.eval(fd_train)[:, :10])
 		print "CNN:", (self.features_dense.eval(fd_train)[:, :10])
 		print "Feat:", (self.features_flat.eval(fd_train)[:, :10])
@@ -106,7 +107,7 @@ class Discriminator(object):
 		image_captions = np.reshape(image_captions, (image_captions.shape[0], image_captions.shape[1], 1))
 		print 'Making discriminator predictions ...'
 		fd_train = {features: image_features, captions: image_captions}
-		print (self.dot_prod.eval(fd_train))
+		# print (self.dot_prod.eval(fd_train))
 		print (self.last.eval(fd_train)[:, :20])
 		print (self.features_dense.eval(fd_train)[:, :20])
 		print (self.features_flat.eval(fd_train)[:, :20])
