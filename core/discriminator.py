@@ -54,7 +54,7 @@ class Discriminator(object):
 		target = self.target
 		with tf.variable_scope('d_lstm', reuse=tf.AUTO_REUSE):
 			features_flat = tf.reshape(features, [-1, 196 * 512])
-			features_dense = tf.layers.dense(inputs=features_flat, units=self.H, activation=tf.nn.relu)
+			features_dense = tf.layers.dense(inputs=features_flat, units=self.H, activation=tf.nn.relu, kernel_initializer=self.weight_initializer)
 
 			cell = tf.nn.rnn_cell.LSTMCell(self.H,state_is_tuple=True)
 			val, state = tf.nn.dynamic_rnn(cell, captions, dtype=tf.float32)
@@ -74,6 +74,7 @@ class Discriminator(object):
 		self.dot_prod = dot_prod
 		self.last = last
 		self.features_dense = features_dense
+		self.features_flat = features_flat
 		return loss
 
 	def train(self, sess, e, i, image_features, image_captions, y):
@@ -105,6 +106,7 @@ class Discriminator(object):
 		print (self.dot_prod.eval(fd_train))
 		print (self.last.eval(fd_train)[:, :20])
 		print (self.features_dense.eval(fd_train)[:, :20])
+		print (self.features_flat.eval(fd_train)[:, :20])
 		pred = pred_sigmoid.eval(fd_train)
 		return pred
 
