@@ -25,6 +25,7 @@ class Discriminator(object):
 		self.alpha_c = alpha_c
 		self.selector = selector
 		self.dropout = dropout
+		self.print_while_training = print_while_training
 		self.V = len(word_to_idx)
 		self.L = dim_feature[0]
 		self.D = dim_feature[1]
