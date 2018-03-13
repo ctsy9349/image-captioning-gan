@@ -62,7 +62,7 @@ class Discriminator(object):
 			val = tf.transpose(val, [1, 0, 2])
 			last = tf.gather(val, int(val.get_shape()[0]) - 1)
 			dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
-			tf.Print(dot_prod, [dot_prod], message="This is dotprod: ")
+			dot_prod = tf.Print(dot_prod, [dot_prod], message="This is dotprod: ")
 			W = tf.Variable(tf.truncated_normal([1, 1]))
 			b = tf.Variable(tf.constant(0.1, shape=[1]))
 			prediction = tf.matmul(dot_prod, W) + b
