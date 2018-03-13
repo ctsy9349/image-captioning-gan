@@ -2,7 +2,7 @@ import tensorflow as tf
 import numpy as np
 
 class Discriminator(object):
-	def __init__(self, word_to_idx, FCN=1000, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
+	def __init__(self, word_to_idx, FCN=1000, print_while_training=False, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
 	prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True, learning_rate=0.1):
 		"""
 		Args:
@@ -86,10 +86,11 @@ class Discriminator(object):
 		loss = self.loss
 		train_step = self.train_step
 		fd_train = {features: image_features, captions: image_captions, target: y}
-		# print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
-		# print "LSTM:",(self.last.eval(fd_train)[:, :10])
-		# print "CNN:", (self.features_dense.eval(fd_train)[:, :10])
-		# print "Feat:", (self.features_flat.eval(fd_train)[:, :10])
+		if self.print_while_training:
+			print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
+			print "LSTM:",(self.last.eval(fd_train)[:, :10])
+			print "CNN:", (self.features_dense.eval(fd_train)[:, :10])
+			print "Feat:", (self.features_flat.eval(fd_train)[:, :10])
 		train_step.run(fd_train)
 		loss_step = loss.eval(fd_train)
 		print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, loss_step))
