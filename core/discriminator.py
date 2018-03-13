@@ -71,7 +71,7 @@ class Discriminator(object):
 		self.pred_sigmoid = pred_sigmoid
 		self.loss = loss
 		self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.loss)
-		self.dot_prod
+		self.dot_prod = dot_prod
 		return loss
 
 	def train(self, sess, e, i, image_features, image_captions, y):
