@@ -88,7 +88,7 @@ class Discriminator(object):
 		train_step = self.train_step
 		fd_train = {features: image_features, captions: image_captions, target: y}
 		if self.print_while_training:
-			print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
+			# print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
 			print "LSTM:",(self.last.eval(fd_train)[:, :10])
 			print "CNN:", (self.features_dense.eval(fd_train)[:, :10])
 			print "Feat:", (self.features_flat.eval(fd_train)[:, :10])
