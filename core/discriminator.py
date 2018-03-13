@@ -62,7 +62,6 @@ class Discriminator(object):
 			val = tf.transpose(val, [1, 0, 2])
 			last = tf.gather(val, int(val.get_shape()[0]) - 1)
 			dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
-			dot_prod = tf.Print(dot_prod, [dot_prod], message="This is dotprod: ")
 			W = tf.Variable(tf.truncated_normal([1, 1]))
 			b = tf.Variable(tf.constant(0.1, shape=[1]))
 			prediction = tf.matmul(dot_prod, W) + b
@@ -72,6 +71,7 @@ class Discriminator(object):
 		self.pred_sigmoid = pred_sigmoid
 		self.loss = loss
 		self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.loss)
+		self.dot_prod
 		return loss
 
 	def train(self, sess, e, i, image_features, image_captions, y):
@@ -82,6 +82,7 @@ class Discriminator(object):
 		loss = self.loss
 		train_step = self.train_step
 		fd_train = {features: image_features, captions: image_captions, target: y}
+		print (self.dot_prod.run(fd_train))
 		train_step.run(fd_train)
 		loss_step = loss.eval(fd_train)
 		print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, loss_step))
