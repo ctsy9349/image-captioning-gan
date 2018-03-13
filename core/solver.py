@@ -157,7 +157,8 @@ class CaptioningSolver(object):
 
 					decoded_1 = decode_captions(captions_batch[:10, 1:], self.model.idx_to_word)
 					decoded_2 = decode_captions(gen_cap[:10], self.model.idx_to_word)
-					all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
+					# all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
+					all_captions_batch = np.append(captions_batch, wrong_captions_batch, 0)
 					#print all_captions_batch.shape, features_batch.shape, labels.shape
 					# print captions_batch[0], "\n", gen_cap[0]
 					rewards = self.discriminator.get_rewards(features_batch, all_captions_batch)
