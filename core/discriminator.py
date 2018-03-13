@@ -82,7 +82,7 @@ class Discriminator(object):
 		loss = self.loss
 		train_step = self.train_step
 		fd_train = {features: image_features, captions: image_captions, target: y}
-		print (self.dot_prod.run(fd_train))
+		print (self.dot_prod.eval(fd_train))
 		train_step.run(fd_train)
 		loss_step = loss.eval(fd_train)
 		print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, loss_step))
@@ -100,6 +100,7 @@ class Discriminator(object):
 		image_captions = np.reshape(image_captions, (image_captions.shape[0], image_captions.shape[1], 1))
 		print 'Making discriminator predictions ...'
 		fd_train = {features: image_features, captions: image_captions}
+		print (self.dot_prod.eval(fd_train))
 		pred = pred_sigmoid.eval(fd_train)
 		return pred
 
