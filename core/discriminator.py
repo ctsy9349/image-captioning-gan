@@ -72,6 +72,8 @@ class Discriminator(object):
 		self.loss = loss
 		self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.loss)
 		self.dot_prod = dot_prod
+		self.last = last
+		self.features_dense = features_dense
 		return loss
 
 	def train(self, sess, e, i, image_features, image_captions, y):
@@ -101,6 +103,8 @@ class Discriminator(object):
 		print 'Making discriminator predictions ...'
 		fd_train = {features: image_features, captions: image_captions}
 		print (self.dot_prod.eval(fd_train))
+		print (self.last.eval(fd_train)[:, :20])
+		print (self.features_dense.eval(fd_train)[:, :20])
 		pred = pred_sigmoid.eval(fd_train)
 		return pred
 
