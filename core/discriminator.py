@@ -96,13 +96,10 @@ class Discriminator(object):
 		loss = self.loss
 		pred_sigmoid = self.pred_sigmoid
 
-		init_op = tf.initialize_all_variables()
-		with tf.Session() as sess:
-			sess.run(init_op)
-			print 'Training Discriminator...'
-			fd_train = {features: image_features, captions: image_captions, target: y}
-			pred = pred_sigmoid.eval(fd_train)
-			return pred
+		print 'Making discriminator predictions ...'
+		fd_train = {features: image_features, captions: image_captions}
+		pred = pred_sigmoid.eval(fd_train)
+		return pred
 
 	def get_grads(self, rewards):
 		pass
