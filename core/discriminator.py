@@ -89,7 +89,7 @@ class Discriminator(object):
 	def save(self):
 		pass
 
-	def get_rewards(self, image_features, captions):
+	def get_rewards(self, image_features, image_captions):
 		features = self.features
 		captions = self.captions
 		target = self.target
