@@ -65,8 +65,7 @@ class Discriminator(object):
 			#dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
 			concatenated = tf.concat([features_dense, last], 1)
 			hidden1 = tf.layers.dense(inputs=concatenated, units=self.FCN, activation=tf.nn.relu, kernel_initializer=self.weight_initializer)
-			output = tf.layers.dense(inputs=hidden1, units=1, activation=tf.nn.relu, kernel_initializer=self.weight_initializer)
-			pred_sigmoid = tf.sigmoid(output)   # for prediction
+			pred_sigmoid = tf.layers.dense(inputs=hidden1, units=1, activation=tf.nn.sigmoid, kernel_initializer=self.weight_initializer)
 			x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=target)
 			loss = tf.reduce_mean(x_entropy)
 		self.pred_sigmoid = pred_sigmoid
