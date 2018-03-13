@@ -178,6 +178,13 @@ class CaptioningSolver(object):
 					print j
 				break
 
+	def rand_shuffle(self, features_batch, all_captions_batch, labels):
+		rand_idxs = np.random.permutation(len(all_captions_batch))
+		features_batch = features_batch[rand_idxs]
+		all_captions_batch = all_captions_batch[rand_idxs]
+		labels = labels[rand_idxs]
+		return features_batch, all_captions_batch, labels
+	
 	def train(self):
 		# train/val dataset
 		n_examples = self.data['captions'].shape[0]
@@ -262,6 +269,7 @@ class CaptioningSolver(object):
 					alps, bts, gen_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
 					#all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
 					all_captions_batch = np.append(captions_batch, wrong_captions_batch, 0)
+					features_batch, all_captions_batch, labels = self.rand_shuffle(features_batch, all_captions_batch, labels)
 					#print all_captions_batch.shape, features_batch.shape, labels.shape
 					# print captions_batch[0], "\n", gen_cap[0]
 					new_loss = self.discriminator.train(sess, e, i, features_batch, all_captions_batch, labels)
