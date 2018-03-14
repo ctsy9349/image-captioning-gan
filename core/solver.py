@@ -50,6 +50,7 @@ class CaptioningSolver(object):
 		self.pretrained_model = kwargs.pop('pretrained_model', None)
 		self.test_model = kwargs.pop('test_model', './model/lstm/model-1')
 		self.train_new = kwargs.pop('train_new', './model/lstm/model-20')
+		self.gpu_list = kwargs.pop('gpu_list', None)
 
 		# set an optimizer by update rule
 		if self.update_rule == 'adam':
@@ -226,7 +227,8 @@ class CaptioningSolver(object):
 		config = tf.ConfigProto(allow_soft_placement = True)
 		#config.gpu_options.per_process_gpu_memory_fraction=0.9
 		config.gpu_options.allow_growth = True
-		config.gpu_options.visible_device_list = "1,2,3"
+		if self.gpu_list is not None:
+			config.gpu_options.visible_device_list = self.gpu_list
 
 		"""
 		Training Discrim : Might need to take the training and sess out of the discrim. pass it in
