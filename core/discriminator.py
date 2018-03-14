@@ -56,7 +56,7 @@ class Discriminator(object):
 		target = self.target
 		with tf.variable_scope('d_lstm', reuse=tf.AUTO_REUSE):
 			features_flat = tf.reshape(features, [-1, 196 * 512])
-			features_dense = tf.layers.dense(inputs=features_flat, units=self.H, activation=tf.nn.relu, kernel_initializer=self.weight_initializer)
+			features_dense = tf.layers.dense(inputs=features_flat, units=self.H, activation=tf.nn.leaky_relu, kernel_initializer=self.weight_initializer)
 
 			cell = tf.nn.rnn_cell.LSTMCell(self.H,state_is_tuple=True)
 			val, state = tf.nn.dynamic_rnn(cell, captions, dtype=tf.float32)
@@ -65,7 +65,7 @@ class Discriminator(object):
 			last = tf.gather(val, int(val.get_shape()[0]) - 1)
 			#dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
 			concatenated = tf.concat([features_dense, last], 1)
-			hidden1 = tf.layers.dense(inputs=concatenated, units=self.FCN, activation=tf.nn.relu, kernel_initializer=self.weight_initializer)
+			hidden1 = tf.layers.dense(inputs=concatenated, units=self.FCN, activation=tf.nn.leaky_relu, kernel_initializer=self.weight_initializer)
 			output = tf.layers.dense(inputs=hidden1, units=1, activation=None, kernel_initializer=self.weight_initializer)
 			pred_sigmoid = tf.sigmoid(output)   # for prediction
 			x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=target)
