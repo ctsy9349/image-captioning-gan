@@ -63,17 +63,17 @@ class Discriminator(object):
 
 			val = tf.transpose(val, [1, 0, 2])
 			last = tf.gather(val, int(val.get_shape()[0]) - 1)
-			#dot_prod = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
-			concatenated = tf.concat([features_dense, last], 1)
-			hidden1 = tf.layers.dense(inputs=concatenated, units=self.FCN, activation=tf.nn.leaky_relu, kernel_initializer=self.weight_initializer)
-			output = tf.layers.dense(inputs=hidden1, units=1, activation=None, kernel_initializer=self.weight_initializer)
+			output = tf.reduce_sum( tf.multiply( last, features_dense ), 1, keep_dims=True )
+			# concatenated = tf.concat([features_dense, last], 1)
+			# hidden1 = tf.layers.dense(inputs=concatenated, units=self.FCN, activation=tf.nn.leaky_relu, kernel_initializer=self.weight_initializer)
+			# output = tf.layers.dense(inputs=hidden1, units=1, activation=None, kernel_initializer=self.weight_initializer)
 			pred_sigmoid = tf.sigmoid(output)   # for prediction
 			x_entropy = tf.nn.sigmoid_cross_entropy_with_logits(logits=output, labels=target)
 			loss = tf.reduce_mean(x_entropy)
 		self.pred_sigmoid = pred_sigmoid
 		self.loss = loss
 		self.train_step = tf.train.RMSPropOptimizer(self.learning_rate).minimize(self.loss)
-		# self.dot_prod = dot_prod
+		self.output = output
 		self.last = last
 		self.features_dense = features_dense
 		self.features_flat = features_flat
@@ -88,7 +88,7 @@ class Discriminator(object):
 		train_step = self.train_step
 		fd_train = {features: image_features, captions: image_captions, target: y}
 		if self.print_while_training:
-			# print "Dotprod:", (self.dot_prod.eval(fd_train)[:10, :])
+			print "Dotprod:", (self.output.eval(fd_train)[:10, :])
 			print "LSTM:",(self.last.eval(fd_train)[:, :10])
 			print "CNN:", (self.features_dense.eval(fd_train)[:, :10])
 			print "Feat:", (self.features_flat.eval(fd_train)[:, :10])

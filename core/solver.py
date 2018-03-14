@@ -49,6 +49,7 @@ class CaptioningSolver(object):
 		self.model_path = kwargs.pop('model_path', './model/')
 		self.pretrained_model = kwargs.pop('pretrained_model', None)
 		self.test_model = kwargs.pop('test_model', './model/lstm/model-1')
+		self.train_new = kwargs.pop('train_new', './model/lstm/model-20')
 
 		# set an optimizer by update rule
 		if self.update_rule == 'adam':
@@ -239,12 +240,16 @@ class CaptioningSolver(object):
 
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
-			all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-			d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
-			non_d_vars = [item for item in all_vars if item not in d_vars]
 			#print len(non_d_vars)
-			saver = tf.train.Saver()#var_list = non_d_vars)
-			saver.restore(sess, self.test_model)
+			if self.train_new is not None:
+				all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+				d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
+				non_d_vars = [item for item in all_vars if item not in d_vars]
+				saver = tf.train.Saver(var_list = non_d_vars)
+				saver.restore(sess, self.train_new)
+			elif self.test_model is not None:
+				saver = tf.train.Saver()#var_list = non_d_vars)
+				saver.restore(sess, self.test_model)
 			# saver = tf.train.Saver()
 			# saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
 			start_t = time.time()
