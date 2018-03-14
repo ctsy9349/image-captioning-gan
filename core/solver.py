@@ -226,6 +226,7 @@ class CaptioningSolver(object):
 		config = tf.ConfigProto(allow_soft_placement = True)
 		#config.gpu_options.per_process_gpu_memory_fraction=0.9
 		config.gpu_options.allow_growth = True
+		config.gpu_options.visible_device_list = "1,2,3"
 
 		"""
 		Training Discrim : Might need to take the training and sess out of the discrim. pass it in
