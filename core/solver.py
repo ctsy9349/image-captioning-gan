@@ -151,7 +151,7 @@ class CaptioningSolver(object):
 			feed_dict_generator = { self.model.features: features_batch}
 			_, _, generated_captions_batch = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
 			for generated_caption in generated_captions_batch:
-				for i in xrange(len(generated_caption), -1, -1):
+				for i in xrange(len(generated_caption) - 1, -1, -1):
 					if generated_caption[i] != 2:
 						generated_caption[i + 1] = 2
 						continue
