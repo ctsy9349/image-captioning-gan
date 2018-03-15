@@ -214,7 +214,7 @@ class CaptioningSolver(object):
 		print "\n\nPre-Training Discriminator ...\n"
 		prev_loss = -1
 		curr_loss = 0
-		
+
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=16)    # (N, max_len, L), (N, max_len)
 
@@ -224,6 +224,7 @@ class CaptioningSolver(object):
 			# Different Loading Paths
 			if self.train_new is not None:
 				all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
+				print all_vars
 				d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator"))
 				non_d_vars = [item for item in all_vars if item not in d_vars]
 				saver = tf.train.Saver(var_list = non_d_vars)
