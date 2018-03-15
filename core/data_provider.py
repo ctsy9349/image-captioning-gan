@@ -11,5 +11,5 @@ class DDataProvider(object):
 	def get_data(self):
 		rand_idxs = np.random.permutation(self.n_examples)
 		self.captions = self.captions[rand_idxs]
-        self.labels = self.labels[rand_idxs]
+		self.labels = self.labels[rand_idxs]
 		return self.captions, self.labels
