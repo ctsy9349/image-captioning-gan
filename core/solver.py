@@ -224,15 +224,19 @@ class CaptioningSolver(object):
 			# Different Loading Paths
 			if self.train_new is not None:
 				all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-				print all_vars
+				# print all_vars
 				d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="discriminator"))
+				for var in all_vars:
+					if var.name in ["beta1_power:0", "beta2_power:0"]:
+						print "Adding var:", var
+						d_vars.add(var)
 				non_d_vars = [item for item in all_vars if item not in d_vars]
 				saver = tf.train.Saver(var_list = non_d_vars)
 				saver.restore(sess, self.train_new)
 			elif self.test_model is not None:
 				saver = tf.train.Saver()#var_list = non_d_vars)
 				saver.restore(sess, self.test_model)
-			saver = tf.train.Saver()
+			saver = tf.train.Saver(max_to_keep=100)
 			saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
 
 			start_t = time.time()
