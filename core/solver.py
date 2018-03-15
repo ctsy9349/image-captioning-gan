@@ -189,11 +189,13 @@ class CaptioningSolver(object):
 		return features_batch, all_captions_batch, labels
 
 	def get_generated_captions(self, sess, alphas, betas, sampled_captions, features, n_iters_per_epoch):
-		generated_captions = np.array([])
+		generated_captions = None
 		for i in xrange(n_iters_per_epoch):
 			features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
 			feed_dict_generator = { self.model.features: features_batch}
 			_, _, generated_captions_batch = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
+			if generated_captions is None:
+				generated_captions = generated_captions_batch
 			generated_captions = np.append(generated_captions, generated_captions_batch, 0)
 		return generated_captions
 
