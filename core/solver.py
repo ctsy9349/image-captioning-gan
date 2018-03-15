@@ -250,11 +250,11 @@ class CaptioningSolver(object):
 					captions_batch = all_captions[i*self.batch_size:(i+1)*self.batch_size]
 					labels_batch = all_labels[i*self.batch_size:(i+1)*self.batch_size]
 					feed_dict_discrim = {
-	                    self.discriminator.input_x: captions_batch,
-	                    self.discriminator.input_y: labels_batch,
-	                    self.discriminator.dropout_keep_prob: self.dis_dropout_keep_prob
-	                }
-	                _, new_loss = sess.run([self.discriminator.train_op, self.discriminator.loss], feed_dict_discrim)
+						self.discriminator.input_x: captions_batch,
+						self.discriminator.input_y: labels_batch,
+						self.discriminator.dropout_keep_prob: self.dis_dropout_keep_prob
+					}
+					_, new_loss = sess.run([self.discriminator.train_op, self.discriminator.loss], feed_dict_discrim)
 					curr_loss += new_loss
 				if (e+1) % self.save_every == 0:
 					saver.save(sess, os.path.join(self.model_path, 'model'), global_step=22 + e)
