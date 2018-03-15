@@ -150,6 +150,13 @@ class CaptioningSolver(object):
 			features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
 			feed_dict_generator = { self.model.features: features_batch}
 			_, _, generated_captions_batch = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
+			for generated_caption in generated_captions_batch:
+				for i in xrange(len(generated_caption), -1, -1):
+					if generated_caption[i] != 2:
+						generated_caption[i + 1] = 2
+						continue
+					else:
+						generated_caption[i] = 0
 			if generated_captions is None:
 				generated_captions = generated_captions_batch
 			generated_captions = np.append(generated_captions, generated_captions_batch, 0)
