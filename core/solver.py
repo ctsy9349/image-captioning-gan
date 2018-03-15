@@ -188,6 +188,15 @@ class CaptioningSolver(object):
 		labels = labels[rand_idxs]
 		return features_batch, all_captions_batch, labels
 
+	def get_generated_captions(self, sess, alphas, betas, sampled_captions, features, n_iters_per_epoch):
+		generated_captions = np.array([])
+		for i in xrange(n_iters_per_epoch):
+			features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
+			feed_dict_generator = { self.model.features: features_batch}
+			_, _, generated_captions_batch = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
+			generated_captions = np.append(generated_captions, generated_captions_batch, 0)
+		return generated_captions
+
 	def train_discrim(self):
 		# train/val dataset
 		n_examples = self.data['captions'].shape[0]
@@ -246,9 +255,9 @@ class CaptioningSolver(object):
 
 			for e in range(self.n_epochs):
 				# Getting New Training Data
-				feed_dict_generator = { self.model.features: features}
-				_, _, generated_captions = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
-				data_privider = DDataProvider(original_captions, generated_captions)
+				print "\n\nEpoch:", e
+				generated_captions = self.get_generated_captions(sess, alphas, betas, sampled_captions, features, n_iters_per_epoch)
+				data_provider = DDataProvider(original_captions, generated_captions)
 				all_captions, all_labels = data_provider.get_data()
 				for i in range(n_iters_per_epoch):
 					captions_batch = all_captions[i*self.batch_size:(i+1)*self.batch_size]
@@ -263,7 +272,6 @@ class CaptioningSolver(object):
 				if (e+1) % self.save_every == 0:
 					saver.save(sess, os.path.join(self.model_path, 'model'), global_step=22 + e)
 					print "model-%s saved." %(e+ 22)
-				print "\n\nEpoch:", e
 				print "Previous epoch total loss: ", prev_loss
 				print "Current epoch total loss: ", curr_loss
 				print "Time elapsed: ", time.time() - start_t
