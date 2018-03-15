@@ -126,7 +126,7 @@ class CaptioningSolver(object):
 						self.discriminator.input_x: captions_batch,
 						self.discriminator.dropout_keep_prob: 1.0
 					}
-					ypred_for_auc = sess.run(discriminator.ypred_for_auc, feed_dict_discrim)
+					ypred_for_auc = sess.run(self.discriminator.ypred_for_auc, feed_dict_discrim)
 					ypred = np.array([[item[1], act[1]] for item, act in zip(ypred_for_auc, labels_batch)])
 					print y_pred
 					break
