@@ -153,6 +153,8 @@ class CaptioningSolver(object):
 			for generated_caption in generated_captions_batch:
 				for i in xrange(len(generated_caption) - 1, -1, -1):
 					if generated_caption[i] != 2:
+						if i == 15:
+							print generated_caption
 						generated_caption[i + 1] = 2
 						continue
 					else:
