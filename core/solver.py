@@ -244,11 +244,12 @@ class CaptioningSolver(object):
 				non_d_vars = [item for item in all_vars if item not in d_vars]
 				saver = tf.train.Saver(var_list = non_d_vars)
 				saver.restore(sess, self.train_new)
+				saver = tf.train.Saver(max_to_keep=100)
+				saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
 			elif self.test_model is not None:
 				saver = tf.train.Saver()#var_list = non_d_vars)
 				saver.restore(sess, self.test_model)
-			saver = tf.train.Saver(max_to_keep=100)
-			saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
+				saver = tf.train.Saver(max_to_keep=100)
 
 			start_t = time.time()
 
@@ -270,6 +271,7 @@ class CaptioningSolver(object):
 						self.discriminator.dropout_keep_prob: self.dis_dropout_keep_prob
 					}
 					_, new_loss = sess.run([self.discriminator.train_op, self.discriminator.loss], feed_dict_discrim)
+					print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, new_loss))
 					curr_loss += new_loss
 				if (e+1) % self.save_every == 0:
 					saver.save(sess, os.path.join(self.model_path, 'model'), global_step=22 + e)
