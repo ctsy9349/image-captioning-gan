@@ -129,6 +129,11 @@ class CaptioningSolver(object):
 					ypred_for_auc = sess.run(self.discriminator.ypred_for_auc, feed_dict_discrim)
 					ypred = np.array([[item[1], act[1]] for item, act in zip(ypred_for_auc, labels_batch)])
 					print ypred
+					decoded = decode_captions(captions_batch, self.model.idx_to_word)
+					for capt, dec, lab in zip(captions_batch, decoded, labels_batch):
+						print capt
+						print dec
+						print lab
 					break
 				break
 
