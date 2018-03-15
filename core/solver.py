@@ -76,7 +76,6 @@ class CaptioningSolver(object):
 				counter += 1
 
 	def test_discrim(self):
-		# train/val dataset
 		n_examples = self.data['captions'].shape[0]
 		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
 		features = self.data['features']
@@ -85,100 +84,52 @@ class CaptioningSolver(object):
 		val_features = self.val_data['features']
 		n_iters_val = int(np.ceil(float(val_features.shape[0])/self.batch_size))
 
-		# build graphs for training model and sampling captions
-		# loss = self.model.build_model()
-		# with tf.variable_scope(tf.get_variable_scope()) as scope:
-		# tf.get_variable_scope().reuse_variables()
-		#     _, _, generated_captions = self.model.build_sampler(max_len=20)
-		#
-		# # train op
-		# with tf.name_scope('optimizer'):
-		#     optimizer = self.optimizer(learning_rate=self.learning_rate)
-		#     grads = tf.gradients(loss, tf.trainable_variables())
-		#     grads_and_vars = list(zip(grads, tf.trainable_variables()))
-		#     train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars)
-		#
-		# # summary op
-		# tf.summary.scalar('batch_loss', loss)
-		# for var in tf.trainable_variables():
-		#     tf.summary.histogram(var.op.name, var)
-		# for grad, var in grads_and_vars:
-		#     tf.summary.histogram(var.op.name+'/gradient', grad)
-
-		# summary_op = tf.summary.merge_all()
-
-		print "The number of epoch: %d" %self.n_epochs
 		print "Data size: %d" %n_examples
 		print "Batch size: %d" %self.batch_size
 		print "Iterations per epoch: %d" %n_iters_per_epoch
 
 		config = tf.ConfigProto(allow_soft_placement = True)
-		#config.gpu_options.per_process_gpu_memory_fraction=0.9
 		config.gpu_options.allow_growth = True
+		if self.gpu_list is not None:
+			config.gpu_options.visible_device_list = self.gpu_list
 
 		"""
-		Training Discrim : Might need to take the training and sess out of the discrim. pass it in
+		Testing Discriminator
 		"""
-		print "\n\nPre-Training Discriminator ...\n"
+		print "\n\nTesting Discriminator ...\n"
 		prev_loss = -1
 		curr_loss = 0
-		loss = self.discriminator.build_model()
 
 		# build a graph to sample captions
-		alphas, betas, sampled_captions = self.model.build_sampler(max_len=17)    # (N, max_len, L), (N, max_len)
+		alphas, betas, sampled_captions = self.model.build_sampler(max_len=16)    # (N, max_len, L), (N, max_len)
 
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
-			#all_vars = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
-			#d_vars = set(tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope="d_lstm"))
-			#non_d_vars = [item for item in all_vars if item not in d_vars]
-			#print len(non_d_vars)
+
+			# Different Loading Paths
 			saver = tf.train.Saver()#var_list = non_d_vars)
 			saver.restore(sess, self.test_model)
-			#saver = tf.train.Saver()
-			#saver.save(sess, os.path.join(self.model_path, 'model'), global_step=21)
-			start_t = time.time()
+
+			# Removing <START> token from original captions
+			original_captions = captions[:, 1:]
+
 			for e in range(self.n_epochs):
-				rand_idxs = np.random.permutation(n_examples)
-				rand_caption_ind = np.random.permutation(n_examples)
-				captions = captions[rand_idxs]
-				rand_captions = captions[rand_caption_ind]
-				image_idxs = image_idxs[rand_idxs]
-
-
+				# Getting New Training Data
+				# print "\n\nEpoch:", e
+				generated_captions = self.get_generated_captions(sess, alphas, betas, sampled_captions, features, n_iters_per_epoch)
+				data_provider = DDataProvider(original_captions, generated_captions)
+				all_captions, all_labels = data_provider.get_data()
 				for i in range(n_iters_per_epoch):
-					captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
-					wrong_captions_batch = rand_captions[i*self.batch_size:(i+1)*self.batch_size]
-					self.fix_wrong_captions(wrong_captions_batch, captions, rand_idxs[i*self.batch_size:(i+1)*self.batch_size], rand_caption_ind[i*self.batch_size:(i+1)*self.batch_size])
-
-					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
-					features_batch_single = features[image_idxs_batch]
-					features_batch = np.append(features_batch_single, features_batch_single, 0)
-					labels = np.append(np.ones((len(captions_batch), 1)), np.zeros((1 * len(wrong_captions_batch), 1)), 0)
-					feed_dict = { self.model.features: features_batch_single }
-					alps, bts, gen_cap = sess.run([alphas, betas, sampled_captions], feed_dict)
-
-					decoded_1 = decode_captions(captions_batch[:10, 1:], self.model.idx_to_word)
-					decoded_2 = decode_captions(gen_cap[:10], self.model.idx_to_word)
-					# all_captions_batch = np.append(np.append(captions_batch, wrong_captions_batch, 0), gen_cap, 0)
-					all_captions_batch = np.append(captions_batch, wrong_captions_batch, 0)
-					#print all_captions_batch.shape, features_batch.shape, labels.shape
-					# print captions_batch[0], "\n", gen_cap[0]
-					rewards = self.discriminator.get_rewards(features_batch, all_captions_batch)
-					print rewards
+					captions_batch = all_captions[i*self.batch_size:(i+1)*self.batch_size]
+					labels_batch = all_labels[i*self.batch_size:(i+1)*self.batch_size]
+					feed_dict_discrim = {
+						self.discriminator.input_x: captions_batch,
+						self.discriminator.dropout_keep_prob: 1.0
+					}
+	                ypred_for_auc = sess.run(discriminator.ypred_for_auc, feed_dict_discrim)
+	                ypred = np.array([[item[1], act[1]] for item, act in zip(ypred_for_auc, labels_batch)])
+					print y_pred
 					break
-					# if (i+1) % self.print_every == 0:
-					# 	print "\nTrain loss at epoch %d & iteration %d (mini-batch): %.5f" %(e+1, i+1, l)
-					# 	ground_truths = captions[image_idxs == image_idxs_batch[0]]
-					# 	decoded = decode_captions(ground_truths, self.model.idx_to_word)
-					# 	for j, gt in enumerate(decoded):
-					# 		print "Ground truth %d: %s" %(j+1, gt)
-					# 	gen_caps = sess.run(generated_captions, feed_dict)
-					# 	decoded = decode_captions(gen_caps, self.model.idx_to_word)
-					# 	print "Generated caption: %s\n" %decoded[0]
-				for i, j in zip(decoded_1, decoded_2):
-					print i
-					print j
 				break
 
 	def rand_shuffle(self, features_batch, all_captions_batch, labels):
