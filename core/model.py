@@ -265,12 +265,12 @@ class CaptionGenerator(object):
     def fix_samples(self, samples):
         for generated_caption in samples:
             for i in xrange(len(generated_caption) - 1, -1, -1):
-            if generated_caption[i] != 2:
-                if i < 15:
-                    generated_caption[i + 1] = 2
-                break
-            else:
-                generated_caption[i] = 0
+                if generated_caption[i] != 2:
+                    if i < 15:
+                        generated_caption[i + 1] = 2
+                    break
+                else:
+                    generated_caption[i] = 0
 
     def get_rewards(self, sess, num_rollout, features, sampled_caption, discriminator, max_length=20):
         rewards = []
