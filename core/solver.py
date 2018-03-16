@@ -52,6 +52,7 @@ class CaptioningSolver(object):
 		self.train_new = kwargs.pop('train_new', './model/lstm/model-20')
 		self.gpu_list = kwargs.pop('gpu_list', None)
 		self.dis_dropout_keep_prob = kwargs.pop('gpu_list', 0.75)
+		self.num_rollout = kwargs.pop('num_rollout', 20)
 
 		# set an optimizer by update rule
 		if self.update_rule == 'adam':
@@ -246,6 +247,70 @@ class CaptioningSolver(object):
 				print "\n\n"
 				prev_loss = curr_loss
 				curr_loss = 0
+
+	def train_adversarial(self):
+		# train/val dataset
+		n_examples = self.data['captions'].shape[0]
+		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
+		features = self.data['features']
+		captions = self.data['captions']
+		image_idxs = self.data['image_idxs']
+		val_features = self.val_data['features']
+		n_iters_val = int(np.ceil(float(val_features.shape[0])/self.batch_size))
+
+		print "The number of epoch: %d" %self.n_epochs
+		print "Data size: %d" %n_examples
+		print "Batch size: %d" %self.batch_size
+		print "Iterations per epoch: %d" %n_iters_per_epoch
+
+		config = tf.ConfigProto(allow_soft_placement = True)
+		config.gpu_options.allow_growth = True
+		if self.gpu_list is not None:
+			config.gpu_options.visible_device_list = self.gpu_list
+
+		"""
+		Training Discrim
+		"""
+		print "\n\nPre-Training Discriminator ...\n"
+		prev_loss = -1
+		curr_loss = 0
+
+		# build a graph to sample captions
+		alphas, betas, sampled_captions = self.model.build_sampler(max_len=16)    # (N, max_len, L), (N, max_len)
+		self.model.build_rollout(max_len=16)
+
+		with tf.Session(config=config) as sess:
+			tf.initialize_all_variables().run()
+
+			# Different Loading Paths
+			if self.test_model is not None:
+				saver = tf.train.Saver()#var_list = non_d_vars)
+				saver.restore(sess, self.test_model)
+				saver = tf.train.Saver(max_to_keep=100)
+
+			start_t = time.time()
+
+			for e in range(self.n_epochs):
+				rand_idxs = np.random.permutation(n_examples)
+				image_idxs = image_idxs[rand_idxs]
+				for i in range(n_iters_per_epoch):
+					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
+					features_batch = features[image_idxs_batch]
+					feed_dict_generator = { self.model.features: features_batch}
+					_, _, generated_captions = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
+					rewards = self.model.get_rewards(sess, self.num_rollout, features, sampled_caption, discriminator, max_length=16)
+					if i % self.print_every == 0:
+						print ("\n\nEpoch %2d, Step %6d: \n" % (e, i), rewards)
+				#	print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, new_loss))
+				# if (e+1) % self.save_every == 0:
+				# 	saver.save(sess, os.path.join(self.model_path, 'model'), global_step=100 + e)
+				# 	print "model-%s saved." %(e+ 22)
+				# print "Previous epoch total loss: ", prev_loss
+				# print "Current epoch total loss: ", curr_loss
+				# print "Time elapsed: ", time.time() - start_t
+				# print "\n\n"
+				# prev_loss = curr_loss
+				# curr_loss = 0
 
 	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=True):
 		'''
