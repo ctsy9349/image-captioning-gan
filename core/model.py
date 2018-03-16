@@ -55,8 +55,8 @@ class CaptionGenerator(object):
         # Place holder for features and captions
         self.features = tf.placeholder(tf.float32, [None, self.L, self.D])
         self.captions = tf.placeholder(tf.int32, [None, self.T + 1])
-		self.generated_caption = tf.placeholder(tf.int32, [None, self.T])
-		self.given_num = tf.placeholder(tf.float32, shape=())
+        self.generated_caption = tf.placeholder(tf.int32, [None, self.T])
+        self.given_num = tf.placeholder(tf.float32, shape=())
 
     def _get_initial_lstm(self, features):
         with tf.variable_scope('initial_lstm'):
@@ -220,67 +220,67 @@ class CaptionGenerator(object):
         return alphas, betas, sampled_captions
 
 
-	def build_rollout(self, max_len=20):
-		features = self.features
-		generated_caption = self.generated_caption
-		# batch normalize feature vectors
-		features = self._batch_norm(features, mode='test', name='conv_features')
-		given_num = self.given_num
+    def build_rollout(self, max_len=20):
+        features = self.features
+        generated_caption = self.generated_caption
+        # batch normalize feature vectors
+        features = self._batch_norm(features, mode='test', name='conv_features')
+        given_num = self.given_num
 
-		c, h = self._get_initial_lstm(features=features)
-		features_proj = self._project_features(features=features)
+        c, h = self._get_initial_lstm(features=features)
+        features_proj = self._project_features(features=features)
 
-		sampled_word_list = []
+        sampled_word_list = []
 
-		generated_caption = tf.transpose(generated_caption, (1, 0))
+        generated_caption = tf.transpose(generated_caption, (1, 0))
 
-		lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_units=self.H)
+        lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_units=self.H)
 
-		for t in range(max_len):
-			if t == 0:
-				x = self._word_embedding(inputs=tf.fill([tf.shape(features)[0]], self._start))
-			elif t <= given_num:
-				x = self._word_embedding(inputs=tf.gather(generated_caption, t - 1), reuse=True)
-			else:
-				x = self._word_embedding(inputs=sampled_word, reuse=True)
+        for t in range(max_len):
+            if t == 0:
+                x = self._word_embedding(inputs=tf.fill([tf.shape(features)[0]], self._start))
+            elif t <= given_num:
+                x = self._word_embedding(inputs=tf.gather(generated_caption, t - 1), reuse=True)
+            else:
+                x = self._word_embedding(inputs=sampled_word, reuse=True)
 
-			context, alpha = self._attention_layer(features, features_proj, h, reuse=(t!=0))
-			alpha_list.append(alpha)
+            context, alpha = self._attention_layer(features, features_proj, h, reuse=(t!=0))
+            alpha_list.append(alpha)
 
-			if self.selector:
-				context, beta = self._selector(context, h, reuse=(t!=0))
-				beta_list.append(beta)
+            if self.selector:
+                context, beta = self._selector(context, h, reuse=(t!=0))
+                beta_list.append(beta)
 
-			with tf.variable_scope('lstm', reuse=(t!=0)):
-				_, (c, h) = lstm_cell(inputs=tf.concat([x, context], 1), state=[c, h])
+            with tf.variable_scope('lstm', reuse=(t!=0)):
+                _, (c, h) = lstm_cell(inputs=tf.concat([x, context], 1), state=[c, h])
 
-			logits = self._decode_lstm(x, h, context, reuse=(t!=0))
-			sampled_word = tf.argmax(logits, 1)
-			if t < given_num:
-				sampled_word_list.append(tf.gather(generated_caption, t))
+            logits = self._decode_lstm(x, h, context, reuse=(t!=0))
+            sampled_word = tf.argmax(logits, 1)
+            if t < given_num:
+                sampled_word_list.append(tf.gather(generated_caption, t))
 
-		self.rolled_out_caption = tf.transpose(tf.stack(sampled_word_list), (1, 0))     # (N, max_len)
-		return rolled_out_caption
+        self.rolled_out_caption = tf.transpose(tf.stack(sampled_word_list), (1, 0))     # (N, max_len)
+        return rolled_out_caption
 
-	def fix_samples(self, samples):
-		for generated_caption in samples:
-			for i in xrange(len(generated_caption) - 1, -1, -1):
-				if generated_caption[i] != 2:
-					if i < 15:
-						generated_caption[i + 1] = 2
-					break
-				else:
-					generated_caption[i] = 0
+    def fix_samples(self, samples):
+        for generated_caption in samples:
+            for i in xrange(len(generated_caption) - 1, -1, -1):
+            if generated_caption[i] != 2:
+                if i < 15:
+                    generated_caption[i + 1] = 2
+                break
+            else:
+                generated_caption[i] = 0
 
-	def get_rewards(self, sess, num_rollout, features, sampled_caption, discriminator, max_length=20):
-		rewards = []
+    def get_rewards(self, sess, num_rollout, features, sampled_caption, discriminator, max_length=20):
+        rewards = []
         for i in range(num_rollout):
             for given_num in range(1, max_length):
                 feed = {self.features: features,
-					self.generated_caption: sampled_caption,
-					self.given_num: given_num}
+                self.generated_caption: sampled_caption,
+                self.given_num: given_num}
                 samples = sess.run(self.rolled_out_caption, feed)
-				self.fix_samples(samples)
+                self.fix_samples(samples)
                 feed = {discriminator.input_x: samples, discriminator.dropout_keep_prob: 1.0}
                 ypred_for_auc = sess.run(discriminator.ypred_for_auc, feed)
                 ypred = np.array([item[1] for item in ypred_for_auc])

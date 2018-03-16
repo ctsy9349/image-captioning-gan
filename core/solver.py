@@ -301,6 +301,7 @@ class CaptioningSolver(object):
 					rewards = self.model.get_rewards(sess, self.num_rollout, features, sampled_caption, discriminator, max_length=16)
 					if i % self.print_every == 0:
 						print ("\n\nEpoch %2d, Step %6d: \n" % (e, i), rewards)
+						print ("Time elapsed: ", time.time() - start_t)
 				#	print('Epoch %6d, Step %6d: Loss = %8.3f' % (e, i, new_loss))
 				# if (e+1) % self.save_every == 0:
 				# 	saver.save(sess, os.path.join(self.model_path, 'model'), global_step=100 + e)
