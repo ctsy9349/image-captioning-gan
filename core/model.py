@@ -56,7 +56,7 @@ class CaptionGenerator(object):
         self.features = tf.placeholder(tf.float32, [None, self.L, self.D])
         self.captions = tf.placeholder(tf.int32, [None, self.T + 1])
         self.generated_caption = tf.placeholder(tf.int32, [None, self.T])
-        self.given_num = tf.placeholder(tf.float32, shape=())
+        self.given_num = None
 
     def _get_initial_lstm(self, features):
         with tf.variable_scope('initial_lstm'):
@@ -225,7 +225,6 @@ class CaptionGenerator(object):
         generated_caption = self.generated_caption
         # batch normalize feature vectors
         features = self._batch_norm(features, mode='test', name='conv_features')
-        given_num = self.given_num
 
         c, h = self._get_initial_lstm(features=features)
         features_proj = self._project_features(features=features)
@@ -254,7 +253,7 @@ class CaptionGenerator(object):
 
             logits = self._decode_lstm(x, h, context, reuse=(t!=0))
             sampled_word = tf.argmax(logits, 1)
-            if t < given_num:
+            if t < self.given_num:
                 sampled_word_list.append(tf.gather(generated_caption, t))
 
         self.rolled_out_caption = tf.transpose(tf.stack(sampled_word_list), (1, 0))     # (N, max_len)
@@ -274,9 +273,9 @@ class CaptionGenerator(object):
         rewards = []
         for i in range(num_rollout):
             for given_num in range(1, max_length):
+                self.given_num = given_num
                 feed = {self.features: features,
-                self.generated_caption: sampled_caption,
-                self.given_num: given_num}
+                self.generated_caption: sampled_caption}
                 samples = sess.run(self.rolled_out_caption, feed)
                 self.fix_samples(samples)
                 feed = {discriminator.input_x: samples, discriminator.dropout_keep_prob: 1.0}
