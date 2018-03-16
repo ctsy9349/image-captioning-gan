@@ -276,8 +276,10 @@ class CaptioningSolver(object):
 		curr_loss = 0
 
 		# build a graph to sample captions
-		alphas, betas, sampled_captions = self.model.build_sampler(max_len=16)    # (N, max_len, L), (N, max_len)
-		self.model.build_rollout(max_len=16)
+		with tf.variable_scope(tf.get_variable_scope()):
+			alphas, betas, sampled_captions = self.model.build_sampler(max_len=16)    # (N, max_len, L), (N, max_len)
+			tf.get_variable_scope().reuse_variables()
+			self.model.build_rollout(max_len=16)
 
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
