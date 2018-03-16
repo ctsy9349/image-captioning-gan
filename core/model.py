@@ -245,11 +245,9 @@ class CaptionGenerator(object):
                 x = self._word_embedding(inputs=sampled_word, reuse=True)
 
             context, alpha = self._attention_layer(features, features_proj, h, reuse=(t!=0))
-            alpha_list.append(alpha)
 
             if self.selector:
                 context, beta = self._selector(context, h, reuse=(t!=0))
-                beta_list.append(beta)
 
             with tf.variable_scope('lstm', reuse=(t!=0)):
                 _, (c, h) = lstm_cell(inputs=tf.concat([x, context], 1), state=[c, h])
