@@ -298,7 +298,7 @@ class CaptioningSolver(object):
 					features_batch = features[image_idxs_batch]
 					feed_dict_generator = { self.model.features: features_batch}
 					_, _, generated_captions = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
-					rewards = self.model.get_rewards(sess, self.num_rollout, features, sampled_caption, discriminator, max_length=16)
+					rewards = self.model.get_rewards(sess, self.num_rollout, features_batch, generated_captions, self.discriminator, max_length=16)
 					if i % self.print_every == 0:
 						print ("\n\nEpoch %2d, Step %6d: \n" % (e, i), rewards)
 						print ("Time elapsed: ", time.time() - start_t)
