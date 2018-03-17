@@ -147,6 +147,7 @@ class CaptionGenerator(object):
         captions_out = captions[:, 1:]
         mask = tf.to_float(tf.not_equal(captions_out, self._null))
 
+		self.rewards = tf.placeholder(tf.float32, shape=[None, self.T]) # get from rollout policy and discriminator
 
         # batch normalize feature vectors
         features = self._batch_norm(features, mode='train', name='conv_features')
@@ -159,6 +160,9 @@ class CaptionGenerator(object):
         alpha_list = []
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_units=self.H)
 
+		loss_list = []
+
+
         for t in range(self.T):
             context, alpha = self._attention_layer(features, features_proj, h, reuse=(t!=0))
             alpha_list.append(alpha)
@@ -170,15 +174,22 @@ class CaptionGenerator(object):
                 _, (c, h) = lstm_cell(inputs=tf.concat([x[:,t,:], context], 1), state=[c, h])
 
             logits = self._decode_lstm(x[:,t,:], h, context, dropout=self.dropout, reuse=(t!=0))
-            loss += tf.reduce_sum(tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=captions_out[:, t]) * mask[:, t])
+			losses = (tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=captions_out[:, t]) * mask[:, t])
+			loss_list.append(tf.reshape(losses, [-1]))
+
+		loss_list = tf.transpose(tf.stack(loss_list), (1, 0))
+
+		loss = tf.reduce_sum(loss_list)
+		g_loss = tf.reduce_sum(tf.reshape(loss_list, [-1]) * tf.reshape(self.rewards, [-1]))
 
         if self.alpha_c > 0:
             alphas = tf.transpose(tf.stack(alpha_list), (1, 0, 2))     # (N, T, L)
             alphas_all = tf.reduce_sum(alphas, 1)      # (N, L)
             alpha_reg = self.alpha_c * tf.reduce_sum((16./196 - alphas_all) ** 2)
             loss += alpha_reg
+			g_loss += alpha_reg
 
-        return loss / tf.to_float(batch_size)
+        return loss / tf.to_float(batch_size), g_loss / tf.to_float(batch_size)
 
     def build_sampler(self, max_len=20):
         features = self.features
