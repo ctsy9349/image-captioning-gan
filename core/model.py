@@ -284,7 +284,7 @@ class CaptionGenerator(object):
         sampled_word_list.append(sampled_word)
 
         _, _, _, _, _ = tf.while_loop(
-            cond=lambda t, _1, _2, _3, given_num : t < self.max_len,
+            cond=lambda t, _1, _2, _3, given_num : t < max_len,
             body=recurrence_after,
             loop_vars=(t, c, h, sampled_word, given_num)
         )
