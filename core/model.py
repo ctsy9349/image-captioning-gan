@@ -56,7 +56,7 @@ class CaptionGenerator(object):
         self.features = tf.placeholder(tf.float32, [None, self.L, self.D])
         self.captions = tf.placeholder(tf.int32, [None, self.T + 1])
         self.generated_caption = tf.placeholder(tf.int32, [None, self.T])
-        self.given_num = tf.placeholder(tf.float32, shape=())
+        self.given_num = tf.placeholder(tf.int32, shape=())
 
     def _get_initial_lstm(self, features):
         with tf.variable_scope('initial_lstm'):
