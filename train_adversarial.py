@@ -1,5 +1,5 @@
 from core.solver import CaptioningSolver
-from core.discriminator import Discriminator
+from core.discriminator_conv import Discriminator
 from core.model import CaptionGenerator
 from core.utils import load_coco_data
 
