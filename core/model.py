@@ -331,5 +331,5 @@ class CaptionGenerator(object):
             else:
                 rewards[max_length - 1] += ypred
 
-        rewards = np.transpose(np.array(rewards)) / (1.0 * rollout_num)  # batch_size x seq_length
+        rewards = np.transpose(np.array(rewards)) / (1.0 * num_rollout)  # batch_size x seq_length
         return rewards
