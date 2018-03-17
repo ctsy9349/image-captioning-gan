@@ -396,7 +396,6 @@ class CaptioningSolver(object):
 
 		with tf.variable_scope(tf.get_variable_scope(), reuse=False):
 			optimizer = self.optimizer(learning_rate=self.learning_rate)
-			trainable_vars =
 			all_trainable_vars = tf.trainable_variables()
 			d_trainable_vars = set(tf.trainable_variables(scope="discriminator"))
 			trainable_vars = [item for item in all_trainable_vars if item not in d_trainable_vars]
