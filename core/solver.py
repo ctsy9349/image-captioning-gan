@@ -406,17 +406,8 @@ class CaptioningSolver(object):
 			train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars)
 			train_op_c = optimizer.apply_gradients(grads_and_vars=grads_and_vars_c)
 
-		tf.summary.scalar('batch_g_loss', g_loss)
-		for var in trainable_vars:
-			tf.summary.histogram(var.op.name, var)
-		for grad, var in grads_and_vars:
-			tf.summary.histogram(var.op.name+'/gradient', grad)
-
-		summary_op = tf.summary.merge_all()
-
 		with tf.Session(config=config) as sess:
 			tf.initialize_all_variables().run()
-			summary_writer = tf.summary.FileWriter(self.log_path, graph=tf.get_default_graph())
 
 			# Different Loading Paths
 			if self.test_model is not None:
@@ -465,17 +456,13 @@ class CaptioningSolver(object):
 						}
 						_, g_l = sess.run([train_op, g_loss], feed_dict_g_loss)
 						curr_loss += g_l
-						if i % 10 == 0 and (not alternate or e % 2 == 0):
-							summary = sess.run(summary_op, feed_dict_generator)
-							e_print = e//2 if alternate else e
-							summary_writer.add_summary(summary, e_print*n_iters_per_epoch + i)
 						print "Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
 						if (i+1) % self.print_every == 0:
 							ground_truths = captions[image_idxs == image_idxs_batch[0]]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)
-							decoded = decode_captions([generated_captions[0]], self.model.idx_to_word)
+							decoded = decode_captions(np.array([generated_captions[0]]), self.model.idx_to_word)
 							print "Generated caption: %s\n" % decoded[0]
 				print "Previous epoch loss: ", prev_loss
 				print "Current epoch loss: ", curr_loss
