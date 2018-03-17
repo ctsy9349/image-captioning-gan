@@ -437,9 +437,9 @@ class CaptioningSolver(object):
 						feed_dict = {self.model.features: features_batch, self.model.captions: captions_batch}
 						_, l = sess.run([train_op_c, loss], feed_dict)
 						curr_loss += l
+						print "Epoch %6d, Step %6d: Loss = %8.3f" %(e+1, i+1, l)
 
 						if (i+1) % self.print_every == 0:
-							print "Epoch %6d, Step %6d: Loss = %8.3f" %(e+1, i+1, l)
 							ground_truths = captions[image_idxs == image_idxs_batch[0]]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
@@ -466,9 +466,8 @@ class CaptioningSolver(object):
 							summary = sess.run(summary_op, feed_dict_generator)
 							e_print = e//2 if alternate else e
 							summary_writer.add_summary(summary, e_print*n_iters_per_epoch + i)
-
+						print "Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
 						if (i+1) % self.print_every == 0:
-							print "Epoch %6d, Step %6d: Loss = %8.3f" %(e+1, i+1, g_l)
 							ground_truths = captions[image_idxs == image_idxs_batch[0]]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
