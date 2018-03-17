@@ -503,18 +503,6 @@ class CaptioningSolver(object):
 		- save_sampled_captions: If True, save sampled captions to pkl file for computing BLEU scores.
 		'''
 
-		features = data['features']
-		captions = data['captions']
-		n_examples = data['captions'].shape[0]
-		features = data['features']
-		captions = data['captions']
-		image_idxs = data['image_idxs']
-
-		captions_batch = captions[0:10]
-		image_idxs_batch = image_idxs[0:10]
-		features_batch = features[image_idxs_batch]
-		image_files = data['file_names'][image_idxs_batch]
-		print image_files
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
 
@@ -523,11 +511,11 @@ class CaptioningSolver(object):
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
 			saver.restore(sess, self.test_model)
-			# features_batch, image_files = sample_coco_minibatch(data, self.batch_size)
+			features_batch, image_files, captions = sample_coco_minibatch(data, self.batch_size)
 			feed_dict = { self.model.features: features_batch }
 			alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
 			decoded = decode_captions(sam_cap, self.model.idx_to_word)
-			decoded_gt = decode_captions(captions_batch, self.model.idx_to_word)
+			decoded_gt = decode_captions(captions, self.model.idx_to_word)
 			if attention_visualization:
 				for n in range(10):
 					print "Sampled Caption: %s" %decoded[n]
