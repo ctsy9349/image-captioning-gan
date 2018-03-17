@@ -502,6 +502,7 @@ class CaptioningSolver(object):
 		'''
 
 		features = data['features']
+		captions = data['captions']
 
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
@@ -511,14 +512,15 @@ class CaptioningSolver(object):
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
 			saver.restore(sess, self.test_model)
-			features_batch, image_files = sample_coco_minibatch(data, self.batch_size)
+			features_batch, image_files, captions = sample_coco_minibatch(data, self.batch_size)
 			feed_dict = { self.model.features: features_batch }
 			alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
 			decoded = decode_captions(sam_cap, self.model.idx_to_word)
-
+			decoded_gt = decode_captions(captions, self.model.idx_to_word)
 			if attention_visualization:
 				for n in range(10):
 					print "Sampled Caption: %s" %decoded[n]
+					print "Ground truth: %s" %decoded_gt[n]
 
 					# Plot original image
 					img = ndimage.imread(image_files[n])
