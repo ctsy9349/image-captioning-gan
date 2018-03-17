@@ -13,7 +13,7 @@
 from __future__ import division
 
 import tensorflow as tf
-
+import numpy as np
 
 class CaptionGenerator(object):
     def __init__(self, word_to_idx, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
