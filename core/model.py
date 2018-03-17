@@ -237,7 +237,7 @@ class CaptionGenerator(object):
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_units=self.H)
 
         def recurrence_before(t, c, h, sampled_word, given_num):
-            sampled_word_list.append(tf.gather(generated_caption, t - 1))
+            sampled_word_list.append(tf.cast(tf.gather(generated_caption, t - 1), dtype=tf.int32))
             x = self._word_embedding(inputs=tf.gather(generated_caption, t - 1), reuse=True)
             context, alpha = self._attention_layer(features, features_proj, h, reuse=True)
             if self.selector:
