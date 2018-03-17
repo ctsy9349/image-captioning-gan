@@ -380,9 +380,9 @@ class CaptioningSolver(object):
 			config.gpu_options.visible_device_list = self.gpu_list
 
 		"""
-		Training Discrim
+		Training Adversarial
 		"""
-		print "\n\nPre-Training Discriminator ...\n"
+		print "\n\nStarting Adversarial Training ...\n"
 		prev_loss = -1
 		curr_loss = 0
 
@@ -430,6 +430,8 @@ class CaptioningSolver(object):
 				rand_idxs = np.random.permutation(n_examples)
 				image_idxs = image_idxs[rand_idxs]
 				if alternate and e % 2 == 1:
+					print "\n\nTraining Generator Using Cross Entropy ...\n"
+
 					for i in range(n_iters_per_epoch):
 						captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
 						image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
@@ -448,6 +450,8 @@ class CaptioningSolver(object):
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
 							print "Generated caption: %s\n" %decoded[0]
 				else:
+					print "\n\nTraining Generator Using Rewards ...\n"
+
 					for i in range(n_iters_per_epoch):
 						image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 						features_batch = features[image_idxs_batch]
@@ -482,7 +486,9 @@ class CaptioningSolver(object):
 				if (e+1) % self.save_every == 0:
 					saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=100 + e)
 					print "model-gen-%s saved." %(e+ 100)
-				if train_discrim and (not alternate or e % 2 == 0):
+				if False and train_discrim and (not alternate or e % 2 == 0): # NEED TO FIX THIS. NEED TRAINING HERE UNDER SAME SESSION
+					print "\n\nTraining Discriminator ...\n"
+
 					self.train_discrim(n_epochs=1)
 					saver.save(sess, os.path.join(self.model_path, 'model-dis'), global_step=100 + e)
 					print "model-dis-%s saved." %(e+ 100)
