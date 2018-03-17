@@ -60,6 +60,7 @@ def sample_coco_minibatch(data, batch_size):
     features = data['features'][mask]
     captions = data['captions'][mask]
     file_names = data['file_names'][mask]
+    captions = data['captions'][mask]
     return features, file_names, captions
 
 def write_bleu(scores, path, epoch):
