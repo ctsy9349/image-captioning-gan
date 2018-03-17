@@ -436,7 +436,7 @@ class CaptioningSolver(object):
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)
-							features_print = features[i*self.batch_size:((i)*self.batch_size + 5)]
+							features_print = features_batch[:5]
 							feed_dict_print = {self.model.features: features_print}
 							gen_caps = sess.run(sampled_captions, feed_dict_print)
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
@@ -465,7 +465,7 @@ class CaptioningSolver(object):
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)
-							features_print = features[i*self.batch_size:((i)*self.batch_size + 5)]
+							features_print = features_batch[:5]
 							feed_dict_print = {self.model.features: features_print}
 							gen_caps = sess.run(sampled_captions, feed_dict_print)
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
