@@ -290,7 +290,7 @@ class CaptionGenerator(object):
         )
 
         self.rolled_out_caption = tf.transpose(tf.stack(sampled_word_list), (1, 0))     # (N, max_len)
-        return rolled_out_caption
+        return self.rolled_out_caption
 
     def fix_samples(self, samples):
         for generated_caption in samples:
