@@ -367,6 +367,8 @@ class CaptioningSolver(object):
 		captions = self.data['captions']
 		image_idxs = self.data['image_idxs']
 		val_features = self.val_data['features']
+	    file_names = self.data['file_names']
+
 		n_iters_val = int(np.ceil(float(val_features.shape[0])/self.batch_size))
 
 		print "The number of epoch: %d" %self.n_epochs
@@ -503,6 +505,15 @@ class CaptioningSolver(object):
 
 		features = data['features']
 		captions = data['captions']
+		n_examples = data['captions'].shape[0]
+		features = data['features']
+		captions = data['captions']
+		image_idxs = data['image_idxs']
+
+		captions_batch = captions[0:10]
+		image_idxs_batch = image_idxs[0:10]
+		features_batch = features[image_idxs_batch]
+		image_files = data['file_names'][image_idxs_batch]
 
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
@@ -512,11 +523,11 @@ class CaptioningSolver(object):
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
 			saver.restore(sess, self.test_model)
-			features_batch, image_files, captions = sample_coco_minibatch(data, self.batch_size)
+			# features_batch, image_files = sample_coco_minibatch(data, self.batch_size)
 			feed_dict = { self.model.features: features_batch }
 			alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
 			decoded = decode_captions(sam_cap, self.model.idx_to_word)
-			decoded_gt = decode_captions(captions, self.model.idx_to_word)
+			decoded_gt = decode_captions(captions_batch, self.model.idx_to_word)
 			if attention_visualization:
 				for n in range(10):
 					print "Sampled Caption: %s" %decoded[n]
