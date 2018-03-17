@@ -356,6 +356,9 @@ class CaptioningSolver(object):
 					saver.save(sess, os.path.join(self.model_path, 'model'), global_step=e+1)
 					print "model-%s saved." %(e+1)
 
+	def add_start_to_gen_cap(self, generated_captions):
+		return np.insert(generated_captions, 0, 1, axis=1)
+
 	def train_adversarial(self, train_discrim=False, alternate=True):
 		# train/val dataset
 		n_examples = self.data['captions'].shape[0]
@@ -451,7 +454,7 @@ class CaptioningSolver(object):
 						feed_dict_generator = { self.model.features: features_batch}
 						_, _, generated_captions = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
 						rewards = self.model.get_rewards(sess, self.num_rollout, features_batch, generated_captions, self.discriminator, max_length=16)
-						generated_captions = add_start_to_gen_cap(generated_captions)
+						generated_captions = self.add_start_to_gen_cap(generated_captions)
 						feed_dict_g_loss = {
 							self.model.features: features_batch,
 							self.model.captions: generated_captions,
