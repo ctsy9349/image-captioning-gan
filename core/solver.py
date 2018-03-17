@@ -463,7 +463,7 @@ class CaptioningSolver(object):
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)
-							decoded = decode_captions([generated_captions[0]], self.model.idx_to_word)
+							decoded = decode_captions(np.array([generated_captions[0]]), self.model.idx_to_word)
 							print "Generated caption: %s\n" % decoded[0]
 				print "Previous epoch loss: ", prev_loss
 				print "Current epoch loss: ", curr_loss
