@@ -419,7 +419,7 @@ class CaptioningSolver(object):
 			for e in range(self.n_epochs):
 				rand_idxs = np.random.permutation(n_examples)
 				image_idxs = image_idxs[rand_idxs]
-				if alternate and e % 2 == 1:
+				if alternate and e % 2 == 0:
 					print "\n\nTraining Generator Using Cross Entropy ...\n"
 
 					for i in range(n_iters_per_epoch):
@@ -432,7 +432,7 @@ class CaptioningSolver(object):
 						print "Epoch %6d, Step %6d: Loss = %8.3f" %(e+1, i+1, l)
 
 						if (i+1) % self.print_every == 0:
-							ground_truths = captions[i*self.batch_size:((i)*self.batch_size + 5)]
+							ground_truths = captions_batch[:5]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)
