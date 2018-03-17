@@ -56,7 +56,7 @@ class CaptionGenerator(object):
         self.features = tf.placeholder(tf.float32, [None, self.L, self.D])
         self.captions = tf.placeholder(tf.int32, [None, self.T + 1])
         self.generated_caption = tf.placeholder(tf.int32, [None, self.T])
-        self.given_num = None
+        self.given_num = tf.placeholder(tf.float32, shape=())
 
     def _get_initial_lstm(self, features):
         with tf.variable_scope('initial_lstm'):
@@ -225,6 +225,7 @@ class CaptionGenerator(object):
         generated_caption = self.generated_caption
         # batch normalize feature vectors
         features = self._batch_norm(features, mode='test', name='conv_features')
+        given_num = self.given_num
 
         c, h = self._get_initial_lstm(features=features)
         features_proj = self._project_features(features=features)
@@ -235,26 +236,58 @@ class CaptionGenerator(object):
 
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_units=self.H)
 
-        for t in range(max_len):
-            if t == 0:
-                x = self._word_embedding(inputs=tf.fill([tf.shape(features)[0]], self._start))
-            elif t <= given_num:
-                x = self._word_embedding(inputs=tf.gather(generated_caption, t - 1), reuse=True)
-            else:
-                x = self._word_embedding(inputs=sampled_word, reuse=True)
-
-            context, alpha = self._attention_layer(features, features_proj, h, reuse=(t!=0))
-
+        def recurrence_before(t, c, h, sampled_word, given_num):
+            sampled_word_list.append(tf.gather(generated_caption, t - 1))
+            x = self._word_embedding(inputs=tf.gather(generated_caption, t - 1), reuse=True)
+            context, alpha = self._attention_layer(features, features_proj, h, reuse=True)
             if self.selector:
-                context, beta = self._selector(context, h, reuse=(t!=0))
-
-            with tf.variable_scope('lstm', reuse=(t!=0)):
+                context, beta = self._selector(context, h, reuse=True)
+            with tf.variable_scope('lstm', reuse=True):
                 _, (c, h) = lstm_cell(inputs=tf.concat([x, context], 1), state=[c, h])
 
-            logits = self._decode_lstm(x, h, context, reuse=(t!=0))
+            logits = self._decode_lstm(x, h, context, reuse=True)
             sampled_word = tf.argmax(logits, 1)
-            if t < self.given_num:
-                sampled_word_list.append(tf.gather(generated_caption, t))
+            return t + 1, c, h, sampled_word, given_num
+
+        def recurrence_after(t, c, h, sampled_word, given_num):
+            x = self._word_embedding(inputs=sampled_word, reuse=True)
+            context, alpha = self._attention_layer(features, features_proj, h, reuse=True)
+            if self.selector:
+                context, beta = self._selector(context, h, reuse=True)
+            with tf.variable_scope('lstm', reuse=True):
+                _, (c, h) = lstm_cell(inputs=tf.concat([x, context], 1), state=[c, h])
+
+            logits = self._decode_lstm(x, h, context, reuse=True)
+            sampled_word = tf.argmax(logits, 1)
+            sampled_word_list.append(sampled_word)
+            return t + 1, c, h, sampled_word, given_num
+
+        x = self._word_embedding(inputs=tf.fill([tf.shape(features)[0]], self._start))
+        context, alpha = self._attention_layer(features, features_proj, h, reuse=False)
+
+        if self.selector:
+            context, beta = self._selector(context, h, reuse=False)
+
+        with tf.variable_scope('lstm', reuse=False):
+            _, (c, h) = lstm_cell(inputs=tf.concat([x, context], 1), state=[c, h])
+
+        logits = self._decode_lstm(x, h, context, reuse=False)
+        sampled_word = tf.argmax(logits, 1)
+
+        t, c, h, sampled_word, given_num = tf.while_loop(
+            cond=lambda t, _1, _2, _3, given_num : i <= given_num,
+            body=recurrence_before,
+            loop_vars=(tf.constant(1, dtype=tf.int32),
+                        c, h, sampled_word, given_num)
+        )
+
+        sampled_word_list.append(sampled_word)
+
+        _, _, _, _, _ = tf.while_loop(
+            cond=lambda t, _1, _2, _3, given_num : i < self.max_len,
+            body=recurrence_after,
+            loop_vars=(t, c, h, sampled_word, given_num)
+        )
 
         self.rolled_out_caption = tf.transpose(tf.stack(sampled_word_list), (1, 0))     # (N, max_len)
         return rolled_out_caption
@@ -273,9 +306,9 @@ class CaptionGenerator(object):
         rewards = []
         for i in range(num_rollout):
             for given_num in range(1, max_length):
-                self.given_num = given_num
                 feed = {self.features: features,
-                self.generated_caption: sampled_caption}
+                self.generated_caption: sampled_caption,
+                self.given_num: given_num}
                 samples = sess.run(self.rolled_out_caption, feed)
                 self.fix_samples(samples)
                 feed = {discriminator.input_x: samples, discriminator.dropout_keep_prob: 1.0}
