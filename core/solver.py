@@ -445,12 +445,10 @@ class CaptioningSolver(object):
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" %(j+1, gt)
-							features_print = features[image_idxs == image_idxs_batch[0]]
-							feed_dict_print = {self.model.features: features_print}
-							gen_caps = sess.run(sampled_captions, feed_dict_print)
+							features = features[image_idxs == image_idxs_batch[0]]
+							gen_caps = sess.run(sampled_captions, feed_dict)
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
-							for j, gc in enumerate(decoded):
-								print "Generated caption %d: %s" %(j+1, gc)
+							print "Generated caption: %s\n" %decoded[0]
 				else:
 					print "\n\nTraining Generator Using Rewards ...\n"
 
@@ -478,12 +476,8 @@ class CaptioningSolver(object):
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)
-							features_print = features[image_idxs == image_idxs_batch[0]]
-							feed_dict_print = {self.model.features: features_print}
-							gen_caps = sess.run(sampled_captions, feed_dict_print)
-							decoded = decode_captions(gen_caps, self.model.idx_to_word)
-							for j, gc in enumerate(decoded):
-								print "Generated caption %d: %s" %(j+1, gc)
+							decoded = decode_captions([generated_captions[0]], self.model.idx_to_word)
+							print "Generated caption: %s\n" % decoded[0]
 				print "Previous epoch loss: ", prev_loss
 				print "Current epoch loss: ", curr_loss
 				print "Elapsed time: ", time.time() - start_t
