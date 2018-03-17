@@ -513,7 +513,7 @@ class CaptioningSolver(object):
 		image_idxs_batch = image_idxs[0:10]
 		features_batch = features[image_idxs_batch]
 		image_files = data['file_names'][image_idxs_batch]
-
+		print image_files
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
 
