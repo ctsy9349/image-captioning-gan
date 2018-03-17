@@ -432,14 +432,16 @@ class CaptioningSolver(object):
 						print "Epoch %6d, Step %6d: Loss = %8.3f" %(e+1, i+1, l)
 
 						if (i+1) % self.print_every == 0:
-							ground_truths = captions[image_idxs == image_idxs_batch[0]]
+							ground_truths = captions[i*self.batch_size:((i)*self.batch_size + 5)]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
-								print "Ground truth %d: %s" %(j+1, gt)
-							features = features[image_idxs == image_idxs_batch[0]]
-							gen_caps = sess.run(sampled_captions, feed_dict)
+								print "Ground truth %d: %s" % (j+1, gt)
+							features_print = features[i*self.batch_size:((i)*self.batch_size + 5)]
+							feed_dict_print = {self.model.features: features_print}
+							gen_caps = sess.run(sampled_captions, feed_dict_print)
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
-							print "Generated caption: %s\n" %decoded[0]
+							for j, gc in enumerate(decoded):
+								print "Generated caption %d: %s" %(j+1, gc)
 				else:
 					print "\n\nTraining Generator Using Rewards ...\n"
 
@@ -459,12 +461,16 @@ class CaptioningSolver(object):
 						curr_loss += g_l
 						print "Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
 						if (i+1) % self.print_every == 0:
-							ground_truths = captions[image_idxs == image_idxs_batch[0]]
+							ground_truths = captions[i*self.batch_size:((i)*self.batch_size + 5)]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)
-							decoded = decode_captions(np.array([generated_captions[0]]), self.model.idx_to_word)
-							print "Generated caption: %s\n" % decoded[0]
+							features_print = features[i*self.batch_size:((i)*self.batch_size + 5)]
+							feed_dict_print = {self.model.features: features_print}
+							gen_caps = sess.run(sampled_captions, feed_dict_print)
+							decoded = decode_captions(gen_caps, self.model.idx_to_word)
+							for j, gc in enumerate(decoded):
+								print "Generated caption %d: %s" %(j+1, gc)
 				print "Previous epoch loss: ", prev_loss
 				print "Current epoch loss: ", curr_loss
 				print "Elapsed time: ", time.time() - start_t
