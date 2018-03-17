@@ -403,6 +403,7 @@ class CaptioningSolver(object):
 			grads_c = tf.gradients(loss, trainable_vars)
 			grads_and_vars = list(zip(grads, trainable_vars))
 			grads_and_vars_c = list(zip(grads_c, trainable_vars))
+			vars_to_load = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES)
 			train_op = optimizer.apply_gradients(grads_and_vars=grads_and_vars)
 			train_op_c = optimizer.apply_gradients(grads_and_vars=grads_and_vars_c)
 
@@ -420,10 +421,11 @@ class CaptioningSolver(object):
 
 			# Different Loading Paths
 			if self.test_model is not None:
-				saver = tf.train.Saver()#var_list = non_d_vars)
+				saver = tf.train.Saver(var_list = vars_to_load)
 				saver.restore(sess, self.test_model)
 				saver = tf.train.Saver(max_to_keep=100)
-
+				saver.save(sess, os.path.join(self.model_path, 'model'), global_step=42)
+				sys.exit()
 			start_t = time.time()
 
 			for e in range(self.n_epochs):
