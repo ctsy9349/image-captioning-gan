@@ -177,7 +177,7 @@ class CaptionGenerator(object):
             losses = (tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=captions_out[:, t]) * mask[:, t])
             loss_list.append(tf.reshape(losses, [-1]))
 
-        loss_list = tf.transpose(tf.stack(loss_list), (1, 0))
+            loss_list = tf.transpose(tf.stack(loss_list), (1, 0))
 
         loss = tf.reduce_sum(loss_list)
         g_loss = tf.reduce_sum(tf.reshape(loss_list, [-1]) * tf.reshape(self.rewards, [-1]))
@@ -187,8 +187,8 @@ class CaptionGenerator(object):
             alphas_all = tf.reduce_sum(alphas, 1)      # (N, L)
             alpha_reg = self.alpha_c * tf.reduce_sum((16./196 - alphas_all) ** 2)
             loss += alpha_reg
-			g_loss += alpha_reg
-
+            g_loss += alpha_reg
+                    
         return loss / tf.to_float(batch_size), g_loss / tf.to_float(batch_size)
 
     def build_sampler(self, max_len=20):
