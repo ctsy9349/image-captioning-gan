@@ -232,7 +232,7 @@ class CaptionGenerator(object):
 
         sampled_word_list = []
 
-        generated_caption = tf.transpose(generated_caption, (1, 0))
+        generated_caption = tf.cast(tf.transpose(generated_caption, (1, 0)), dtype=tf.int64)
 
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_units=self.H)
 
@@ -274,7 +274,7 @@ class CaptionGenerator(object):
         logits = self._decode_lstm(x, h, context, reuse=False)
         sampled_word = tf.argmax(logits, 1)
 
-        sampled_word_list = tf.TensorArray(dtype=tf.int32, size=max_len,
+        sampled_word_list = tf.TensorArray(dtype=tf.int64, size=max_len,
                                      dynamic_size=False, infer_shape=True)
 
         t, c, h, sampled_word, given_num, sampled_word_list = tf.while_loop(
