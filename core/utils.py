@@ -57,8 +57,8 @@ def decode_captions(captions, idx_to_word):
 def sample_coco_minibatch(data, batch_size):
     data_size = data['features'].shape[0]
     mask = np.random.choice(data_size, batch_size)
-	image_idxs = data['image_idxs'][mask]
-	features = data['features'][image_idxs]
+    image_idxs = data['image_idxs'][mask]
+    features = data['features'][image_idxs]
     captions = data['captions'][mask]
     file_names = data['file_names'][image_idxs]
     return features, file_names, captions
