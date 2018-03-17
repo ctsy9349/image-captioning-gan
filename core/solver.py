@@ -367,7 +367,6 @@ class CaptioningSolver(object):
 		captions = self.data['captions']
 		image_idxs = self.data['image_idxs']
 		val_features = self.val_data['features']
-	    file_names = self.data['file_names']
 
 		n_iters_val = int(np.ceil(float(val_features.shape[0])/self.batch_size))
 
