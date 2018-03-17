@@ -419,6 +419,7 @@ class CaptioningSolver(object):
 			for e in range(self.n_epochs):
 				rand_idxs = np.random.permutation(n_examples)
 				image_idxs = image_idxs[rand_idxs]
+				captions = captions[rand_idxs]
 				if alternate and e % 2 == 0:
 					print "\n\nTraining Generator Using Cross Entropy ...\n"
 
