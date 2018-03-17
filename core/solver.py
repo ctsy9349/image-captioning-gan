@@ -263,7 +263,7 @@ class CaptioningSolver(object):
 		# build graphs for training model and sampling captions
 		loss = self.model.build_model()
 		with tf.variable_scope(tf.get_variable_scope()) as scope:
-		tf.get_variable_scope().reuse_variables()
+			tf.get_variable_scope().reuse_variables()
 			_, _, generated_captions = self.model.build_sampler(max_len=20)
 
 		# train op
