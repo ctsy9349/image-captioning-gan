@@ -274,7 +274,7 @@ class CaptionGenerator(object):
         logits = self._decode_lstm(x, h, context, reuse=False)
         sampled_word = tf.argmax(logits, 1)
 
-        sampled_word_list = tensor_array_ops.TensorArray(dtype=tf.int32, size=max_len,
+        sampled_word_list = tf.TensorArray(dtype=tf.int32, size=max_len,
                                      dynamic_size=False, infer_shape=True)
 
         t, c, h, sampled_word, given_num, sampled_word_list = tf.while_loop(
