@@ -17,7 +17,7 @@ import numpy as np
 
 class CaptionGenerator(object):
     def __init__(self, word_to_idx, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
-                  prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True, mixer=0.2):
+                  prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True, mixer=0.4):
         """
         Args:
             word_to_idx: word-to-index mapping dictionary.
@@ -56,6 +56,7 @@ class CaptionGenerator(object):
         # Place holder for features and captions
         self.features = tf.placeholder(tf.float32, [None, self.L, self.D])
         self.captions = tf.placeholder(tf.int32, [None, self.T + 1])
+        self.captions_two = tf.placeholder(tf.int32, [None, self.T + 1])
         self.generated_caption = tf.placeholder(tf.int32, [None, self.T])
         self.given_num = tf.placeholder(tf.int32, shape=())
 
@@ -142,10 +143,12 @@ class CaptionGenerator(object):
     def build_model(self):
         features = self.features
         captions = self.captions
+        captions_two = self.captions_two
         batch_size = tf.shape(features)[0]
 
         captions_in = captions[:, :self.T]
         captions_out = captions[:, 1:]
+        captions_out_two = captions_two[:, 1:]
         mask = tf.to_float(tf.not_equal(captions_out, self._null))
 
         self.rewards = tf.placeholder(tf.float32, shape=[None, self.T]) # get from rollout policy and discriminator
@@ -162,7 +165,7 @@ class CaptionGenerator(object):
         lstm_cell = tf.nn.rnn_cell.BasicLSTMCell(num_units=self.H)
 
         loss_list = []
-
+        loss_list2 = []
 
         for t in range(self.T):
             context, alpha = self._attention_layer(features, features_proj, h, reuse=(t!=0))
@@ -176,12 +179,16 @@ class CaptionGenerator(object):
 
             logits = self._decode_lstm(x[:,t,:], h, context, dropout=self.dropout, reuse=(t!=0))
             losses = (tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=captions_out[:, t]) * mask[:, t])
+            losses2 = (tf.nn.sparse_softmax_cross_entropy_with_logits(logits=logits, labels=captions_out_two[:, t]) * mask[:, t])
             loss_list.append(tf.reshape(losses, [-1]))
+            loss_list2.append(tf.reshape(losses2, [-1]))
+
 
         loss_list = tf.transpose(tf.stack(loss_list), (1, 0))
+        loss_list2 = tf.transpose(tf.stack(loss_list), (1, 0))
 
         loss = tf.reduce_sum(loss_list)
-        g_loss = tf.reduce_sum(tf.reshape(loss_list, [-1]) * tf.reshape(self.rewards, [-1]))
+        g_loss = tf.reduce_sum(tf.reshape(loss_list2, [-1]) * tf.reshape(self.rewards, [-1]))
         mixed_loss = (self.mixer * loss) + ((1 - self.mixer) * g_loss)
 
         if self.alpha_c > 0:
