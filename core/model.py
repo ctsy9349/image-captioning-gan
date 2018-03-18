@@ -182,7 +182,7 @@ class CaptionGenerator(object):
 
         loss = tf.reduce_sum(loss_list)
         g_loss = tf.reduce_sum(tf.reshape(loss_list, [-1]) * tf.reshape(self.rewards, [-1]))
-        mixed_loss = (self.mixer * loss) + ((1 - self.mixer) * g_loss)
+        mixed_loss = g_loss
 
         if self.alpha_c > 0:
             alphas = tf.transpose(tf.stack(alpha_list), (1, 0, 2))     # (N, T, L)
