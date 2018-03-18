@@ -476,8 +476,8 @@ class CaptioningSolver(object):
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
 							for j, gc in enumerate(decoded):
 								print "Generated caption %d: %s" %(j+1, gc)
-							saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=100 + model_num)
-							print "model-gen-%s saved." %(model_num + 100)
+							saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=200 + model_num)
+							print "model-gen-%s saved." %(model_num + 200)
 							model_num += 1
 
 				print "Previous epoch loss: ", prev_loss
@@ -486,14 +486,14 @@ class CaptioningSolver(object):
 				prev_loss = curr_loss
 				curr_loss = 0
 				if (e+1) % self.save_every == 0:
-					saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=100 + model_num)
-					print "model-gen-%s saved." %(model_num + 100)
+					saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=200 + model_num)
+					print "model-gen-%s saved." %(model_num + 200)
 					model_num += 1
 				if False and train_discrim and (not alternate or e % 2 == 0): # NEED TO FIX THIS. NEED TRAINING HERE UNDER SAME SESSION
 					print "\n\nTraining Discriminator ...\n"
 
 					self.train_discrim(n_epochs=1)
-					saver.save(sess, os.path.join(self.model_path, 'model-dis'), global_step=100 + e)
+					saver.save(sess, os.path.join(self.model_path, 'model-dis'), global_step=200 + e)
 					print "model-dis-%s saved." %(e+ 100)
 
 

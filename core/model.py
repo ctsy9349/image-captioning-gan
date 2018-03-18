@@ -329,7 +329,7 @@ class CaptionGenerator(object):
                 self.fix_samples(samples)
                 feed = {discriminator.input_x: samples, discriminator.dropout_keep_prob: 1.0}
                 ypred_for_auc = sess.run(discriminator.ypred_for_auc, feed)
-                ypred = np.array([item[1] for item in ypred_for_auc])
+                ypred = np.array([item[0] for item in ypred_for_auc])
                 if i == 0:
                     rewards.append(ypred)
                 else:
@@ -338,7 +338,7 @@ class CaptionGenerator(object):
             # the last token reward
             feed = {discriminator.input_x: sampled_caption, discriminator.dropout_keep_prob: 1.0}
             ypred_for_auc = sess.run(discriminator.ypred_for_auc, feed)
-            ypred = np.array([item[1] for item in ypred_for_auc])
+            ypred = np.array([item[0] for item in ypred_for_auc])
             if i == 0:
                 rewards.append(ypred)
             else:
