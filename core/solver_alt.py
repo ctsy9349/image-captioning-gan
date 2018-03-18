@@ -462,10 +462,10 @@ class CaptioningSolver(object):
 						feed_dict_generator = { self.model.features: features_batch}
 						_, _, generated_captions = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
 						rewards = self.model.get_rewards(sess, self.num_rollout, features_batch, generated_captions, self.discriminator, max_length=16)
-						generated_captions = self.add_start_to_gen_cap(generated_captions)
+						# generated_captions = self.add_start_to_gen_cap(generated_captions)
 						feed_dict_g_loss = {
 							self.model.features: features_batch,
-							self.model.captions: generated_captions,
+							self.model.captions: captions_batch,
 							self.model.rewards: rewards
 						}
 						_, g_l = sess.run([train_op, g_loss], feed_dict_g_loss)
@@ -482,8 +482,8 @@ class CaptioningSolver(object):
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
 							for j, gc in enumerate(decoded):
 								print "Generated caption %d: %s" %(j+1, gc)
-							saver.save(sess, os.path.join(self.model_path, 'model-gen-alt'), global_step=400 + model_num)
-							print "model-gen-alt-%s saved." %(model_num + 400)
+							saver.save(sess, os.path.join(self.model_path, 'model-gen-alt'), global_step=600 + model_num)
+							print "model-gen-alt-%s saved." %(model_num + 600)
 							model_num += 1
 
 				print "Previous epoch loss: ", prev_loss
@@ -492,8 +492,8 @@ class CaptioningSolver(object):
 				prev_loss = curr_loss
 				curr_loss = 0
 				if (e+1) % self.save_every == 0:
-					saver.save(sess, os.path.join(self.model_path, 'model-gen-alt'), global_step=400 + model_num)
-					print "model-gen-alt%s saved." %(model_num + 400)
+					saver.save(sess, os.path.join(self.model_path, 'model-gen-alt'), global_step=600 + model_num)
+					print "model-gen-alt%s saved." %(model_num + 600)
 					model_num += 1
 				if False and train_discrim and (not alternate or e % 2 == 0): # NEED TO FIX THIS. NEED TRAINING HERE UNDER SAME SESSION
 					print "\n\nTraining Discriminator ...\n"
