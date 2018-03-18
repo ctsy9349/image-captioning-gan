@@ -359,7 +359,7 @@ class CaptioningSolver(object):
 	def add_start_to_gen_cap(self, generated_captions):
 		return np.insert(generated_captions, 0, 1, axis=1)
 
-	def train_adversarial(self, train_discrim=False, alternate=True):
+	def train_adversarial(self, train_discrim=False, alternate=False):
 		# train/val dataset
 		n_examples = self.data['captions'].shape[0]
 		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
@@ -452,20 +452,21 @@ class CaptioningSolver(object):
 					for i in range(n_iters_per_epoch):
 						image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 						features_batch = features[image_idxs_batch]
+						captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
 						feed_dict_generator = { self.model.features: features_batch}
 						_, _, generated_captions = sess.run([alphas, betas, sampled_captions], feed_dict_generator)
 						rewards = self.model.get_rewards(sess, self.num_rollout, features_batch, generated_captions, self.discriminator, max_length=16)
-						generated_captions = self.add_start_to_gen_cap(generated_captions)
+						# generated_captions = self.add_start_to_gen_cap(generated_captions)
 						feed_dict_g_loss = {
 							self.model.features: features_batch,
-							self.model.captions: generated_captions,
+							self.model.captions: captions_batch,
 							self.model.rewards: rewards
 						}
 						_, g_l = sess.run([train_op, g_loss], feed_dict_g_loss)
 						curr_loss += g_l
 						print "Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
 						if (i+1) % self.print_every == 0:
-							ground_truths = captions[i*self.batch_size:((i)*self.batch_size + 5)]
+							ground_truths = captions_batch[:5]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
 							for j, gt in enumerate(decoded):
 								print "Ground truth %d: %s" % (j+1, gt)

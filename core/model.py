@@ -17,7 +17,7 @@ import numpy as np
 
 class CaptionGenerator(object):
     def __init__(self, word_to_idx, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
-                  prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True, mixer=0.5):
+                  prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True, mixer=0.2):
         """
         Args:
             word_to_idx: word-to-index mapping dictionary.

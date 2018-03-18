@@ -20,11 +20,11 @@ def main():
 	discrim = Discriminator(sequence_length=16, num_classes=2, vocab_size=len(word_to_idx),
             embedding_size=128, filter_sizes=dis_filter_sizes, num_filters=dis_num_filters, l2_reg_lambda=dis_l2_reg_lambda)
 
-	solver = CaptioningSolver(model, discrim, data, data, n_epochs=20, batch_size=64, gpu_list="1,2", update_rule='adam',
-								learning_rate=0.0025, print_every=1000, save_every=1, image_path='./image/',
+	solver = CaptioningSolver(model, discrim, data, data, n_epochs=20, batch_size=64, gpu_list="0,1,2", update_rule='adam',
+								learning_rate=0.0025, print_every=20, save_every=1, image_path='./image/',
 								pretrained_model=None, model_path='model/lstm/', train_new=None,
 								test_model='model/lstm/model-42',
-								print_bleu=False, log_path='log/')
+								print_bleu=False, log_path='log/', num_rollout=10)
 
 	solver.train_adversarial()
 
