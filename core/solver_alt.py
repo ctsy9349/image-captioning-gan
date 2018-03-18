@@ -430,14 +430,13 @@ class CaptioningSolver(object):
 						if num == 2:
 							cross_ent = False
 							num = 0
-						print "\n\nTraining Generator Using Cross Entropy ...\n"
 						captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
 						image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 						features_batch = features[image_idxs_batch]
 						feed_dict = {self.model.features: features_batch, self.model.captions: captions_batch}
 						_, l = sess.run([train_op_c, loss], feed_dict)
 						curr_loss += l
-						print "Epoch %6d, Step %6d: Loss = %8.3f" %(e+1, i+1, l)
+						print "No-Mix CE Epoch %6d, Step %6d: CE Loss = %8.3f" %(e+1, i+1, l)
 
 						if (i+1) % self.print_every == 0:
 							ground_truths = captions_batch[:5]
@@ -458,7 +457,6 @@ class CaptioningSolver(object):
 						if num == 2:
 							cross_ent = True
 							num = 0
-						print "\n\nTraining Generator Using Rewards ...\n"
 						image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 						features_batch = features[image_idxs_batch]
 						captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
@@ -473,7 +471,7 @@ class CaptioningSolver(object):
 						}
 						_, g_l = sess.run([train_op, g_loss], feed_dict_g_loss)
 						curr_loss += g_l
-						print "No-Mix Alt Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
+						print "No-Mix Rew Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
 						if (i+1) % self.print_every == 0:
 							ground_truths = captions_batch[:5]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
