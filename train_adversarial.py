@@ -11,7 +11,7 @@ def main():
 
 	model = CaptionGenerator(word_to_idx, dim_feature=[196, 512], dim_embed=512,
 							dim_hidden=1024, n_time_step=16, prev2out=True,
-							ctx2out=True, alpha_c=1.0, selector=True, dropout=True, mixing=0.3)
+							ctx2out=True, alpha_c=1.0, selector=True, dropout=True, mixer=0.3)
 
 	dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 12, 16]
 	dis_num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100]
