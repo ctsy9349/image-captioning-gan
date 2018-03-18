@@ -464,7 +464,7 @@ class CaptioningSolver(object):
 						}
 						_, g_l = sess.run([train_op, g_loss], feed_dict_g_loss)
 						curr_loss += g_l
-						print "Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
+						print "No-Mix Epoch %6d, Step %6d: G-Loss = %8.3f" %(e+1, i+1, g_l)
 						if (i+1) % self.print_every == 0:
 							ground_truths = captions_batch[:5]
 							decoded = decode_captions(ground_truths, self.model.idx_to_word)
