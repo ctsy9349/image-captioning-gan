@@ -387,6 +387,8 @@ class CaptioningSolver(object):
 		prev_loss = -1
 		curr_loss = 0
 
+		model_num = 0
+
 		# build a graph to sample captions
 		with tf.variable_scope(tf.get_variable_scope()):
 			loss, g_loss = self.model.build_model()
@@ -473,14 +475,19 @@ class CaptioningSolver(object):
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
 							for j, gc in enumerate(decoded):
 								print "Generated caption %d: %s" %(j+1, gc)
+							saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=100 + model_num)
+							print "model-gen-%s saved." %(model_num + 100)
+							model_num += 1
+
 				print "Previous epoch loss: ", prev_loss
 				print "Current epoch loss: ", curr_loss
 				print "Elapsed time: ", time.time() - start_t
 				prev_loss = curr_loss
 				curr_loss = 0
 				if (e+1) % self.save_every == 0:
-					saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=100 + e)
-					print "model-gen-%s saved." %(e+ 100)
+					saver.save(sess, os.path.join(self.model_path, 'model-gen'), global_step=100 + model_num)
+					print "model-gen-%s saved." %(model_num + 100)
+					model_num += 1
 				if False and train_discrim and (not alternate or e % 2 == 0): # NEED TO FIX THIS. NEED TRAINING HERE UNDER SAME SESSION
 					print "\n\nTraining Discriminator ...\n"
 

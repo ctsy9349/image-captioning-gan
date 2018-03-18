@@ -17,7 +17,7 @@ import numpy as np
 
 class CaptionGenerator(object):
     def __init__(self, word_to_idx, dim_feature=[196, 512], dim_embed=512, dim_hidden=1024, n_time_step=16,
-                  prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True):
+                  prev2out=True, ctx2out=True, alpha_c=0.0, selector=True, dropout=True, mixer=0.5):
         """
         Args:
             word_to_idx: word-to-index mapping dictionary.
@@ -47,6 +47,7 @@ class CaptionGenerator(object):
         self.T = n_time_step
         self._start = word_to_idx['<START>']
         self._null = word_to_idx['<NULL>']
+        self.mixer = mixer
 
         self.weight_initializer = tf.contrib.layers.xavier_initializer()
         self.const_initializer = tf.constant_initializer(0.0)
@@ -181,15 +182,16 @@ class CaptionGenerator(object):
 
         loss = tf.reduce_sum(loss_list)
         g_loss = tf.reduce_sum(tf.reshape(loss_list, [-1]) * tf.reshape(self.rewards, [-1]))
+        mixed_loss = (self.mixer * loss) + ((1 - self.mixer) * g_loss)
 
         if self.alpha_c > 0:
             alphas = tf.transpose(tf.stack(alpha_list), (1, 0, 2))     # (N, T, L)
             alphas_all = tf.reduce_sum(alphas, 1)      # (N, L)
             alpha_reg = self.alpha_c * tf.reduce_sum((16./196 - alphas_all) ** 2)
             loss += alpha_reg
-            g_loss += alpha_reg
+            mixed_loss += alpha_reg
 
-        return loss / tf.to_float(batch_size), g_loss / tf.to_float(batch_size)
+        return loss / tf.to_float(batch_size), mixed_loss / tf.to_float(batch_size)
 
     def build_sampler(self, max_len=20):
         features = self.features
