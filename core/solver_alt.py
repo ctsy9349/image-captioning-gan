@@ -450,6 +450,9 @@ class CaptioningSolver(object):
 							decoded = decode_captions(gen_caps, self.model.idx_to_word)
 							for j, gc in enumerate(decoded):
 								print "Generated caption %d: %s" %(j+1, gc)
+							saver.save(sess, os.path.join(self.model_path, 'model-gen-alt'), global_step=600 + model_num)
+							print "model-gen-alt-%s saved." %(model_num + 600)
+							model_num += 1
 					else:
 						num += 1
 						if num == 2:
