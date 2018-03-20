@@ -520,7 +520,7 @@ class CaptioningSolver(object):
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
 
-		num_rep = if validation then 5 else 3
+		num_rep = 5 if validation else 3
 		if validation is None:
 			num_rep = 1
 		config = tf.ConfigProto(allow_soft_placement=True)
