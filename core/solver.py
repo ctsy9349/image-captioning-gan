@@ -496,8 +496,14 @@ class CaptioningSolver(object):
 					saver.save(sess, os.path.join(self.model_path, 'model-dis'), global_step=300 + e)
 					print "model-dis-%s saved." %(e+ 100)
 
+	def get_unique(self, num_rep, items):
+		items_taken = []
+		for i in xrange(len(items)):
+			if i % num_rep == 0:
+				items_taken.append(items[i])
+		return np.array(items_taken)
 
-	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False):
+	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True):
 		'''
 		Args:
 		- data: dictionary with the following keys:
@@ -514,14 +520,20 @@ class CaptioningSolver(object):
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
 
+		num_rep = if validation then 5 else 3
+		if validation is None:
+			num_rep = 1
 		config = tf.ConfigProto(allow_soft_placement=True)
 		config.gpu_options.allow_growth = True
-		n_examples = data['captions'].shape[0]
+		n_examples = data['captions'].shape[0]//num_rep
 		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
 		features = data['features']
 		captions = data['captions']
 		image_idxs = data['image_idxs']
 		file_names = data['file_names']
+
+		captions = self.get_unique(num_rep, captions)
+		image_idxs = self.get_unique(num_rep, captions)
 
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
