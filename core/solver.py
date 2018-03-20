@@ -521,7 +521,6 @@ class CaptioningSolver(object):
 		features = data['features']
 		captions = data['captions']
 		image_idxs = data['image_idxs']
-		val_features = val_data['features']
 
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
