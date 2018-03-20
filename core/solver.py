@@ -521,6 +521,7 @@ class CaptioningSolver(object):
 		features = data['features']
 		captions = data['captions']
 		image_idxs = data['image_idxs']
+		file_names = data['file_names']
 
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
@@ -529,6 +530,7 @@ class CaptioningSolver(object):
 				captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
 				image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 				features_batch = features[image_idxs_batch]
+				image_files = file_names[image_idxs_batch]
 				feed_dict = { self.model.features: features_batch }
 				alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
 				decoded = decode_captions(sam_cap, self.model.idx_to_word)
