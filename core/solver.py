@@ -533,7 +533,7 @@ class CaptioningSolver(object):
 		file_names = data['file_names']
 
 		captions = self.get_unique(num_rep, captions)
-		image_idxs = self.get_unique(num_rep, captions)
+		image_idxs = self.get_unique(num_rep, image_idxs)
 
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
