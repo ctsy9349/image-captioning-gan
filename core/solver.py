@@ -497,7 +497,7 @@ class CaptioningSolver(object):
 					print "model-dis-%s saved." %(e+ 100)
 
 
-	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=True):
+	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False):
 		'''
 		Args:
 		- data: dictionary with the following keys:
@@ -516,45 +516,55 @@ class CaptioningSolver(object):
 
 		config = tf.ConfigProto(allow_soft_placement=True)
 		config.gpu_options.allow_growth = True
+		n_examples = data['captions'].shape[0]
+		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
+		features = data['features']
+		captions = data['captions']
+		image_idxs = data['image_idxs']
+		val_features = val_data['features']
+
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
 			saver.restore(sess, self.test_model)
-			features_batch, image_files, captions = sample_coco_minibatch(data, self.batch_size)
-			feed_dict = { self.model.features: features_batch }
-			alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
-			decoded = decode_captions(sam_cap, self.model.idx_to_word)
-			decoded_gt = decode_captions(captions, self.model.idx_to_word)
-			if attention_visualization:
-				for n in range(10):
-					print "Sampled Caption: %s" %decoded[n]
-					print "Ground truth: %s" %decoded_gt[n]
+			for i in range(n_iters_per_epoch):
+				captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
+				image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
+				features_batch = features[image_idxs_batch]
+				feed_dict = { self.model.features: features_batch }
+				alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
+				decoded = decode_captions(sam_cap, self.model.idx_to_word)
+				decoded_gt = decode_captions(captions_batch, self.model.idx_to_word)
+				if attention_visualization:
+					for n in range(self.batch_size):
+						print "Sampled Caption: %s" %decoded[n]
+						print "Ground truth: %s" %decoded_gt[n]
 
-					# Plot original image
-					img = ndimage.imread(image_files[n])
-					plt.subplot(4, 5, 1)
-					plt.imshow(img)
-					plt.axis('off')
-
-					# Plot images with attention weights
-					words = decoded[n].split(" ")
-					for t in range(len(words)):
-						if t > 18:
-							break
-						plt.subplot(4, 5, t+2)
-						plt.text(0, 1, '%s(%.2f)'%(words[t], bts[n,t]) , color='black', backgroundcolor='white', fontsize=8)
+						# Plot original image
+						img = ndimage.imread(image_files[n])
+						plt.subplot(4, 5, 1)
 						plt.imshow(img)
-						alp_curr = alps[n,t,:].reshape(14,14)
-						alp_img = skimage.transform.pyramid_expand(alp_curr, upscale=16, sigma=20)
-						plt.imshow(alp_img, alpha=0.85)
 						plt.axis('off')
-					plt.show()
 
-				if save_sampled_captions:
-					all_sam_cap = np.ndarray((features.shape[0], 20))
-					num_iter = int(np.ceil(float(features.shape[0]) / self.batch_size))
-					for i in range(num_iter):
-						features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
-						feed_dict = { self.model.features: features_batch }
-						all_sam_cap[i*self.batch_size:(i+1)*self.batch_size] = sess.run(sampled_captions, feed_dict)
-					all_decoded = decode_captions(all_sam_cap, self.model.idx_to_word)
-					save_pickle(all_decoded, "./data/%s/%s.candidate.captions.pkl" %(split,split))
+						# Plot images with attention weights
+						words = decoded[n].split(" ")
+						for t in range(len(words)):
+							if t > 18:
+								break
+							plt.subplot(4, 5, t+2)
+							plt.text(0, 1, '%s(%.2f)'%(words[t], bts[n,t]) , color='black', backgroundcolor='white', fontsize=8)
+							plt.imshow(img)
+							alp_curr = alps[n,t,:].reshape(14,14)
+							alp_img = skimage.transform.pyramid_expand(alp_curr, upscale=16, sigma=20)
+							plt.imshow(alp_img, alpha=0.85)
+							plt.axis('off')
+						plt.show()
+
+					if save_sampled_captions:
+						all_sam_cap = np.ndarray((features.shape[0], 20))
+						num_iter = int(np.ceil(float(features.shape[0]) / self.batch_size))
+						for i in range(num_iter):
+							features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
+							feed_dict = { self.model.features: features_batch }
+							all_sam_cap[i*self.batch_size:(i+1)*self.batch_size] = sess.run(sampled_captions, feed_dict)
+						all_decoded = decode_captions(all_sam_cap, self.model.idx_to_word)
+						save_pickle(all_decoded, "./data/%s/%s.candidate.captions.pkl" %(split,split))
