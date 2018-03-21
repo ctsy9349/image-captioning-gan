@@ -503,6 +503,28 @@ class CaptioningSolver(object):
 				items_taken.append(items[i])
 		return np.array(items_taken)
 
+	def plot(self, data, filename):
+		config = tf.ConfigProto(allow_soft_placement=True)
+		config.gpu_options.allow_growth = True
+
+		n_examples = len(data['file_names'])
+		features = data['features']
+		image_idxs = data['image_idxs']
+		file_names = data['file_names']
+		with open(filename) as f:
+			captions_dict = pickle.load(f)
+		for idx, lst in captions_dict.items():
+			file_name = file_names[idx]
+			img = ndimage.imread(file_name)
+			plt.imshow(img)
+			plt.axis('off')
+			plt.show()
+			print idx, file_name
+			for model, caption in lst:
+				dec_cap = decode_captions(caption, self.model.idx_to_word)
+				print model, ":", dec_cap
+			print "\n"
+
 	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True, filename="captions_all.pkl"):
 		'''
 		Args:
