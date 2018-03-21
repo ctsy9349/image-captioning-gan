@@ -537,10 +537,10 @@ class CaptioningSolver(object):
 					plt.imshow(img)
 					plt.axis('off')
 					plt.show()
-				decoded = decode_captions(captions[i], self.model.idx_to_word)
+				decoded = decode_captions(captions[i + j], self.model.idx_to_word)
 				print decoded
 
-	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True):
+	def test(self, data, split='train', attention_visualization=False, save_sampled_captions=True, validation=True):
 		'''
 		Args:
 		- data: dictionary with the following keys:
@@ -609,12 +609,12 @@ class CaptioningSolver(object):
 							plt.axis('off')
 						plt.show()
 
-					if save_sampled_captions:
-						all_sam_cap = np.ndarray((features.shape[0], 20))
-						num_iter = int(np.ceil(float(features.shape[0]) / self.batch_size))
-						for i in range(num_iter):
-							features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
-							feed_dict = { self.model.features: features_batch }
-							all_sam_cap[i*self.batch_size:(i+1)*self.batch_size] = sess.run(sampled_captions, feed_dict)
-						all_decoded = decode_captions(all_sam_cap, self.model.idx_to_word)
-						save_pickle(all_decoded, "./data/%s/%s.candidate.captions.pkl" %(split,split))
+				if save_sampled_captions:
+					all_sam_cap = np.ndarray((features.shape[0], 20))
+					num_iter = int(np.ceil(float(features.shape[0]) / self.batch_size))
+					for i in range(num_iter):
+						features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
+						feed_dict = { self.model.features: features_batch }
+						all_sam_cap[i*self.batch_size:(i+1)*self.batch_size] = sess.run(sampled_captions, feed_dict)
+					all_decoded = decode_captions(all_sam_cap, self.model.idx_to_word)
+					save_pickle(all_decoded, "./data/%s/%s.candidate.captions.pkl" %(split,split))
