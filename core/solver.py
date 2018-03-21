@@ -503,7 +503,7 @@ class CaptioningSolver(object):
 				items_taken.append(items[i])
 		return np.array(items_taken)
 
-	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True):
+	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True, filename="captions_all.pkl"):
 		'''
 		Args:
 		- data: dictionary with the following keys:
@@ -516,7 +516,6 @@ class CaptioningSolver(object):
 		- attention_visualization: If True, visualize attention weights with images for each sampled word. (ipthon notebook)
 		- save_sampled_captions: If True, save sampled captions to pkl file for computing BLEU scores.
 		'''
-
 		# build a graph to sample captions
 		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
 
@@ -525,59 +524,34 @@ class CaptioningSolver(object):
 			num_rep = 1
 		config = tf.ConfigProto(allow_soft_placement=True)
 		config.gpu_options.allow_growth = True
-		n_examples = data['captions'].shape[0]//num_rep
-		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
+		n_examples = data['image_idxs'].shape[0]//num_rep
 		features = data['features']
 		captions = data['captions']
 		image_idxs = data['image_idxs']
 		file_names = data['file_names']
 
-		captions = self.get_unique(num_rep, captions)
+		#captions = self.get_unique(num_rep, captions)
+		#image_idxs = self.get_unique(num_rep, image_idxs)
+		captions_dict = {}
+		i = 0
+		for i in range(len(image_idxs)):
+			idx = image_idxs[i]
+			if idx not in captions_dict:
+				captions_dict[idx] = []
+			captions_dict[idx].append(('GT', captions[i]))
 		image_idxs = self.get_unique(num_rep, image_idxs)
-
+		n_iters_per_epoch = int(np.ceil(float(len(image_idxs))/self.batch_size))
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
-			saver.restore(sess, self.test_model)
-			for i in range(n_iters_per_epoch):
-				captions_batch = captions[i*self.batch_size:(i+1)*self.batch_size]
-				image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
-				features_batch = features[image_idxs_batch]
-				image_files = file_names[image_idxs_batch]
-				feed_dict = { self.model.features: features_batch }
-				alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
-				decoded = decode_captions(sam_cap, self.model.idx_to_word)
-				decoded_gt = decode_captions(captions_batch, self.model.idx_to_word)
-				if attention_visualization:
-					for n in range(self.batch_size):
-						print "Sampled Caption: %s" %decoded[n]
-						print "Ground truth: %s" %decoded_gt[n]
-
-						# Plot original image
-						img = ndimage.imread(image_files[n])
-						plt.subplot(4, 5, 1)
-						plt.imshow(img)
-						plt.axis('off')
-
-						# Plot images with attention weights
-						words = decoded[n].split(" ")
-						for t in range(len(words)):
-							if t > 18:
-								break
-							plt.subplot(4, 5, t+2)
-							plt.text(0, 1, '%s(%.2f)'%(words[t], bts[n,t]) , color='black', backgroundcolor='white', fontsize=8)
-							plt.imshow(img)
-							alp_curr = alps[n,t,:].reshape(14,14)
-							alp_img = skimage.transform.pyramid_expand(alp_curr, upscale=16, sigma=20)
-							plt.imshow(alp_img, alpha=0.85)
-							plt.axis('off')
-						plt.show()
-
-					if save_sampled_captions:
-						all_sam_cap = np.ndarray((features.shape[0], 20))
-						num_iter = int(np.ceil(float(features.shape[0]) / self.batch_size))
-						for i in range(num_iter):
-							features_batch = features[i*self.batch_size:(i+1)*self.batch_size]
-							feed_dict = { self.model.features: features_batch }
-							all_sam_cap[i*self.batch_size:(i+1)*self.batch_size] = sess.run(sampled_captions, feed_dict)
-						all_decoded = decode_captions(all_sam_cap, self.model.idx_to_word)
-						save_pickle(all_decoded, "./data/%s/%s.candidate.captions.pkl" %(split,split))
+			for test_model in self.test_models:
+				saver.restore(sess, test_model)
+				for i in n_iters_per_epoch:
+					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
+					features_batch = features[image_idxs_batch]
+					#image_files = file_names[image_idxs_batch]
+					feed_dict = { self.model.features: features_batch }
+					alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
+					for idx, cap in zip(image_idxs_batch, sam_cap):
+						captions_dict[idx].append((test_model, cap))
+				with open(filename, "w") as f:
+					pickle.dump(captions_dict, f)
