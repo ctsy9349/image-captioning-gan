@@ -543,7 +543,8 @@ class CaptioningSolver(object):
 		n_iters_per_epoch = int(np.ceil(float(len(image_idxs))/self.batch_size))
 		with tf.Session(config=config) as sess:
 			saver = tf.train.Saver()
-			for test_model in self.test_models:
+			for test_model in self.test_model:
+				print "Saving for", test_model, "..."
 				saver.restore(sess, test_model)
 				for i in n_iters_per_epoch:
 					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
@@ -555,3 +556,4 @@ class CaptioningSolver(object):
 						captions_dict[idx].append((test_model, cap))
 				with open(filename, "w") as f:
 					pickle.dump(captions_dict, f)
+				print "Saved."
