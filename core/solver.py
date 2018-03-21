@@ -546,7 +546,7 @@ class CaptioningSolver(object):
 			for test_model in self.test_model:
 				print "Saving for", test_model, "..."
 				saver.restore(sess, test_model)
-				for i in n_iters_per_epoch:
+				for i in xrange(n_iters_per_epoch):
 					image_idxs_batch = image_idxs[i*self.batch_size:(i+1)*self.batch_size]
 					features_batch = features[image_idxs_batch]
 					#image_files = file_names[image_idxs_batch]
