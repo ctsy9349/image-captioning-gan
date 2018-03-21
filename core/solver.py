@@ -503,6 +503,41 @@ class CaptioningSolver(object):
 				items_taken.append(items[i])
 		return np.array(items_taken)
 
+	def print_samples(self, data, n_samples = 50):
+
+		'''
+		Args:
+		- data: dictionary with the following keys:
+		- features: Feature vectors of shape (5000, 196, 512)
+		- file_names: Image file names of shape (5000, )
+		- captions: Captions of shape (24210, 17)
+		- image_idxs: Indices for mapping caption to image of shape (24210, )
+		- features_to_captions: Mapping feature to captions (5000, 4~5)
+		- split: 'train', 'val' or 'test'
+		- attention_visualization: If True, visualize attention weights with images for each sampled word. (ipthon notebook)
+		- save_sampled_captions: If True, save sampled captions to pkl file for computing BLEU scores.
+		'''
+
+		n_examples = data['captions'].shape[0]//num_rep
+		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
+		features = data['features']
+		captions = data['captions']
+		image_idxs = data['image_idxs']
+		n_images = image_idxs[-1]
+		file_names = data['file_names']
+		choices = np.random.choice(n_images, n_samples)
+		for i in xrange(0, n_examples, 5):
+			image_idx = image_idxs[i]
+			if image_idx in choices:
+				 image_file = file_names[image_idx]
+				 img = ndimage.imread(image_file)
+				 plt.imshow(img)
+				 plt.axis('off')
+				 plt.show()
+				 for j in xrange(5):
+					decoded = decode_captions(captions[i + j], self.model.idx_to_word)
+					print decoded
+
 	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True):
 		'''
 		Args:
