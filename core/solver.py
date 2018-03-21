@@ -529,6 +529,7 @@ class CaptioningSolver(object):
 			image_idx = image_idxs[i]
 			if image_idx in choices:
 				 image_file = file_names[image_idx]
+				 print image_file
 				 img = ndimage.imread(image_file)
 				 plt.imshow(img)
 				 plt.axis('off')
