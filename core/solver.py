@@ -518,8 +518,7 @@ class CaptioningSolver(object):
 		- save_sampled_captions: If True, save sampled captions to pkl file for computing BLEU scores.
 		'''
 
-		n_examples = data['captions'].shape[0]//num_rep
-		n_iters_per_epoch = int(np.ceil(float(n_examples)/self.batch_size))
+		n_examples = data['captions'].shape[0]
 		features = data['features']
 		captions = data['captions']
 		image_idxs = data['image_idxs']
