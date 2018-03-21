@@ -537,7 +537,7 @@ class CaptioningSolver(object):
 					plt.imshow(img)
 					plt.axis('off')
 					plt.show()
-				decoded = decode_captions(captions[i + j], self.model.idx_to_word)
+				decoded = decode_captions(captions[i], self.model.idx_to_word)
 				print decoded
 
 	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True):
