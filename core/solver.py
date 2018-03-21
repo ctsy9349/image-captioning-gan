@@ -525,18 +525,20 @@ class CaptioningSolver(object):
 		n_images = image_idxs[-1]
 		file_names = data['file_names']
 		choices = np.random.choice(n_images, n_samples)
-		for i in xrange(0, n_examples, 5):
+		seen = {}
+		for i in xrange(0, n_examples):
 			image_idx = image_idxs[i]
 			if image_idx in choices:
-				 image_file = file_names[image_idx]
-				 print image_file
-				 img = ndimage.imread(image_file)
-				 plt.imshow(img)
-				 plt.axis('off')
-				 plt.show()
-				 for j in xrange(5):
-					decoded = decode_captions(captions[i + j], self.model.idx_to_word)
-					print decoded
+				if image_idx not in seen:
+					seen[image_idx] = True
+					image_file = file_names[image_idx]
+					print image_file
+					img = ndimage.imread(image_file)
+					plt.imshow(img)
+					plt.axis('off')
+					plt.show()
+				decoded = decode_captions(captions[i + j], self.model.idx_to_word)
+				print decoded
 
 	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True):
 		'''
