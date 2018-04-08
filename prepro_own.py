@@ -21,8 +21,8 @@ def get_val(filenames):
 	vggnet.build()
 	with tf.Session() as sess:
 		tf.initialize_all_variables().run()
-			image_batch = np.array(map(lambda x: ndimage.imread(x, mode='RGB'), filenames)).astype(np.float32)
-			feats = sess.run(vggnet.features, feed_dict={vggnet.images: image_batch})
+		image_batch = np.array(map(lambda x: ndimage.imread(x, mode='RGB'), filenames)).astype(np.float32)
+		feats = sess.run(vggnet.features, feed_dict={vggnet.images: image_batch})
 	data = {}
 	data['filenames'] = filenames
 	data['features'] = feats
