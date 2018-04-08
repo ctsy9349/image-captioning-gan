@@ -503,6 +503,27 @@ class CaptioningSolver(object):
 				items_taken.append(items[i])
 		return np.array(items_taken)
 
+	def test_own(self, data):
+		# build a graph to sample captions
+		alphas, betas, sampled_captions = self.model.build_sampler(max_len=20)    # (N, max_len, L), (N, max_len)
+		config = tf.ConfigProto(allow_soft_placement=True)
+		config.gpu_options.allow_growth = True
+		with tf.Session(config=config) as sess:
+			saver = tf.train.Saver()
+			saver.restore(sess, self.test_model)
+			features_batch = data['features']
+			image_files = data['filenames']
+			feed_dict = { self.model.features: features_batch }
+			alps, bts, sam_cap = sess.run([alphas, betas, sampled_captions], feed_dict)  # (N, max_len, L), (N, max_len)
+			decoded = decode_captions(sam_cap, self.model.idx_to_word)
+			for i in range(len(image_files)):
+				print "Sampled Caption: %s" %decoded[n]
+				# Plot original image
+				img = ndimage.imread(image_files[n])
+				plt.imshow(img)
+				plt.axis('off')
+				plt.show()
+
 	def test(self, data, split='train', attention_visualization=True, save_sampled_captions=False, validation=True):
 		'''
 		Args:
